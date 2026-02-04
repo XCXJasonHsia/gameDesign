@@ -293,10 +293,42 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
 
         // 存储轨道轨迹（用于可视化）
         this.trail = [];
-        this.maxTrailLength = 100;
+        this.maxTrailLength = 80;
         
         // 创建轨迹图形
         this.createTrailGraphics(scene);
+
+        // 设置碰撞机制
+        this.setupCollisionProperties();
+
+        // 设置星球宽度
+        this.displayWidth = 15;
+    }
+
+    setupCollisionProperties() {
+        // 设置弹性为0（碰撞后不反弹）
+        this.setBounce(0);
+        
+        // 关闭阻尼（防止自动减速）
+        this.setDamping(false);
+        
+        // 设置为动态物体
+        this.body.moves = true;
+        
+        // 启用物理身体（但在初始时是禁用的，直到需要碰撞时）
+        this.body.enable = false;
+        
+        // 设置碰撞世界边界
+        this.setCollideWorldBounds(false);
+        
+        // 设置质量（影响碰撞响应）
+        this.body.mass = 1;
+        
+        // 设置速度阻尼为0.9
+        this.setDrag(0.9);
+
+        // 初始时未粘附
+        this.isAttached = false;
     }
     
     createTrailGraphics(scene) {
@@ -358,6 +390,13 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
     }
     
     update(time, delta) {
+        // 如果已经粘附，不进行物理更新
+        if (this.isAttached) {
+            // 保持位置与行星相对固定
+            this.updateAttachedPosition();
+            return;
+        }
+        
         const deltaTime = delta / 1000;
         
         if (this.lastUpdateTime === 0) {
@@ -372,7 +411,10 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
         // 固定时间步长更新
         while (frameTime > 0) {
             const dt = Math.min(this.fixedTimeStep, frameTime);
-            this.updatePhysics(dt);
+            
+            // 使用连续碰撞检测
+            this.updatePhysicsWithCCD(dt);
+            
             frameTime -= dt;
         }
         
@@ -385,12 +427,205 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
         this.updateTrail();
     }
     
+    // 更新粘附位置
+    updateAttachedPosition() {
+        const planetRadius = this.targetPlanet.displayWidth / 2;
+        const satelliteRadius = this.displayWidth / 2;
+        const totalRadius = planetRadius + satelliteRadius;
+        
+        // 计算从行星到当前位置的方向
+        const dx = this.position.x - this.targetPlanet.x;
+        const dy = this.position.y - this.targetPlanet.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 0) {
+            // 保持卫星在行星表面上
+            this.position.set(
+                this.targetPlanet.x + (dx / distance) * totalRadius,
+                this.targetPlanet.y + (dy / distance) * totalRadius
+            );
+        }
+        
+        // 更新显示位置
+        this.x = this.position.x;
+        this.y = this.position.y;
+        this.body.position.set(this.position.x, this.position.y);
+    }
+    
+    // 带连续碰撞检测的物理更新
+    updatePhysicsWithCCD(dt) {
+        // 计算当前位置的速度
+        const velocityX = (this.position.x - this.previousPosition.x) / dt;
+        const velocityY = (this.position.y - this.previousPosition.y) / dt;
+        const speed = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+        
+        // 计算物体的半径
+        const planetRadius = this.targetPlanet.displayWidth / 2;
+        const satelliteRadius = this.displayWidth / 2;
+        const minDistanceForCollision = planetRadius + satelliteRadius;
+        
+        // 计算这一帧的位移向量
+        const displacementX = velocityX * dt;
+        const displacementY = velocityY * dt;
+        const displacementLength = Math.sqrt(displacementX * displacementX + displacementY * displacementY);
+        
+        // 如果位移很小，使用普通检测
+        if (displacementLength < minDistanceForCollision * 0.5) {
+            this.updatePhysics(dt);
+            this.checkCollisionWithPlanet();
+            return;
+        }
+        
+        // 使用连续碰撞检测：将位移分成多个小段
+        const segments = Math.ceil(displacementLength / (minDistanceForCollision * 0.5));
+        const segmentDt = dt / segments;
+        const segmentDx = displacementX / segments;
+        const segmentDy = displacementY / segments;
+        
+        let collided = false;
+        
+        for (let i = 0; i < segments; i++) {
+            // 保存当前位置
+            const currentX = this.position.x;
+            const currentY = this.position.y;
+            
+            // 应用一小段位移
+            this.position.x += segmentDx;
+            this.position.y += segmentDy;
+            
+            // 检查碰撞
+            if (this.checkCollisionWithPlanet()) {
+                // 发生碰撞，调整位置到碰撞点
+                this.position.x = currentX;
+                this.position.y = currentY;
+                this.attachToPlanet();
+                collided = true;
+                break;
+            }
+            
+            // 更新前一帧位置用于下一段计算
+            this.previousPosition.x = currentX;
+            this.previousPosition.y = currentY;
+        }
+        
+        // 如果没有碰撞，正常更新加速度
+        if (!collided) {
+            this.computeAcceleration();
+            
+            // 保存当前位置
+            const currentX = this.position.x;
+            const currentY = this.position.y;
+            
+            // 韦尔莱积分
+            const newX = 2 * this.position.x - this.previousPosition.x + this.acceleration.x * dt * dt;
+            const newY = 2 * this.position.y - this.previousPosition.y + this.acceleration.y * dt * dt;
+            
+            // 更新位置
+            this.previousPosition.set(currentX, currentY);
+            this.position.set(newX, newY);
+            
+            // 更新速度
+            const newVelocityX = (newX - currentX) / dt;
+            const newVelocityY = (newY - currentY) / dt;
+            this.body.velocity.set(newVelocityX, newVelocityY);
+        }
+    }
+    
+    // 改进的碰撞检测
+    checkCollisionWithPlanet() {
+        if (this.isAttached) return false;
+        
+        // 计算两个物体之间的距离
+        const dx = this.position.x - this.targetPlanet.x;
+        const dy = this.position.y - this.targetPlanet.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // 计算两个物体的半径
+        const planetRadius = this.targetPlanet.displayWidth / 2;
+        const satelliteRadius = this.displayWidth / 2;
+        const minDistance = planetRadius + satelliteRadius;
+        
+        // 增加一个缓冲区，防止刚好擦边而过
+        const buffer = 2; // 2像素的缓冲区
+        return distance < (minDistance + buffer);
+    }
+    
+    // 原有的 updatePhysics 方法可以保留，但改为私有方法
     updatePhysics(dt) {
         // 计算加速度（使用当前幂律）
         this.computeAcceleration();
         
         // 韦尔莱积分
         this.verletIntegration(dt);
+        
+        // 检查碰撞
+        this.checkCollisionWithPlanet();
+    }
+    
+    
+    // 粘附到行星
+    attachToPlanet() {
+        this.isAttached = true;
+        
+        // 停止所有运动
+        this.body.velocity.set(0, 0);
+        this.acceleration.set(0, 0);
+        
+        // 将卫星位置固定在行星上（考虑两个物体的半径）
+        // 假设两个物体半径相同或行星较大，将卫星放在行星表面上
+        const planetRadius = this.targetPlanet.displayWidth / 2;
+        const satelliteRadius = this.displayWidth / 2;
+        const totalRadius = planetRadius + satelliteRadius;
+        
+        // 计算从行星中心到卫星的方向
+        const dx = this.position.x - this.targetPlanet.x;
+        const dy = this.position.y - this.targetPlanet.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 0) {
+            // 将卫星移动到行星表面
+            this.position.set(
+                this.targetPlanet.x + (dx / distance) * totalRadius,
+                this.targetPlanet.y + (dy / distance) * totalRadius
+            );
+        } else {
+            // 如果完全重叠，放在行星右侧
+            this.position.set(
+                this.targetPlanet.x + totalRadius,
+                this.targetPlanet.y
+            );
+        }
+        
+        // 更新显示位置
+        this.x = this.position.x;
+        this.y = this.position.y;
+        this.body.position.set(this.position.x, this.position.y);
+        
+        // 清除轨迹
+        this.trail = [];
+        if (this.trailGraphics) {
+            this.trailGraphics.clear();
+        }
+        
+        //console.log('卫星已粘附到行星上');
+    }
+    
+    // 检查是否与行星碰撞
+    checkCollisionWithPlanet() {
+        if (this.isAttached) return false;
+        
+        // 计算两个物体之间的距离
+        const dx = this.position.x - this.targetPlanet.x;
+        const dy = this.position.y - this.targetPlanet.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // 计算两个物体的半径
+        const planetRadius = this.targetPlanet.displayWidth / 2;
+        const satelliteRadius = this.displayWidth / 2;
+        const minDistance = planetRadius + satelliteRadius;
+        
+        // 如果距离小于两者半径之和，则发生碰撞
+        return distance < minDistance;
     }
     
     computeAcceleration() {
@@ -450,6 +685,9 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
     }
     
     updateTrail() {
+        // 如果已粘附，不更新轨迹
+        if (this.isAttached) return;
+
         // 添加当前位置到轨迹
         this.trail.push({
             x: this.position.x,
@@ -504,6 +742,30 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
         }
     }
     
+     // 重置卫星状态
+    reset() {
+        // 重置黏附状态
+        this.isAttached = false;
+        
+        // 禁用物理身体
+        this.body.enable = false;
+        
+        // 移除碰撞检测器（如果存在）
+        if (this.scene.physics.world) {
+            // 需要保存对碰撞器的引用以便移除
+            // 这里简化处理，实际使用时可能需要改进
+        }
+        
+        // 重置轨迹
+        this.trail = [];
+        if (this.trailGraphics) {
+            this.trailGraphics.clear();
+        }
+        
+        // 重置时间跟踪
+        this.lastUpdateTime = 0;
+    }
+
     destroy() {
         // 清理轨迹图形
         if (this.trailGraphics) {

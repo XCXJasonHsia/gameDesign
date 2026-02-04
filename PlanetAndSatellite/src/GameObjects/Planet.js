@@ -17,5 +17,17 @@ export class Planet extends Phaser.Physics.Arcade.Sprite {
 
         // 不应用重力系统
         this.GravitySystem = null;
+
+        // 将行星图标调大2倍
+        this.setScale(2, 2);
+        
+        // 调整碰撞体大小以匹配新的缩放
+        this.refreshBody();
+
+        // 碰撞时无弹性
+        this.setBounce(0);
+
+        // 星球宽度
+        this.displayWidth = 30;
     }
 }

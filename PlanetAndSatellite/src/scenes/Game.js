@@ -94,7 +94,11 @@ export class Game extends Phaser.Scene {
             }
         });
 
+        // 启用物理世界的碰撞
+        this.physics.world.setBoundsCollision(true, true, true, true);
+
         // 添加重置按钮（可选）
+        // 在 Game.js 的 resetButton 部分修改：
         const resetButton = this.add.text(600, 50, '重置轨道', {
             fontSize: '16px',
             fill: '#ffffff',
@@ -114,6 +118,10 @@ export class Game extends Phaser.Scene {
                 sat.previousPosition.copy(sat.position);
                 sat.initializeOrbitalVelocity();
                 sat.trail = []; // 清除轨迹
+                // 重置黏附状态
+                if (sat.reset) {
+                    sat.reset();
+                }
             });
         });
     }
