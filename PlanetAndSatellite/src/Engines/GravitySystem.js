@@ -19,6 +19,22 @@ export class GravitySystem {
         this.maxDragSpeed = 0.25;
         this.lastDragTime = 0;
         this.lastDragX = 0;
+        
+        // 键盘控制相关变量
+        this.keyboardControls = {
+            planet1: { left: false, right: false, velocity: 0, targetPower: -2 },
+            planet2: { left: false, right: false, velocity: 0, targetPower: -2 }
+        };
+        
+        // 键盘控制参数（减慢速率）
+        this.accelerationRate = 0.2;    // 减小加速度
+        this.maxVelocity = 0.8;         // 减小最大速度
+        this.decelerationRate = 0.6;    // 调整减速度
+        this.minPower = -4;             // 最小幂律值
+        this.maxPower = -1;             // 最大幂律值
+        
+        // 物理距离比例尺（增加物理距离）
+        this.distanceScale = 2.0;       // 物理距离是显示距离的2倍
     }
     
     // 添加行星时创建对应的滑动条
@@ -69,6 +85,7 @@ export class GravitySystem {
         slider.setOrigin(0.5, 0.5);
         slider.setInteractive({ draggable: true });
         slider.planetRef = planet; // 存储对行星的引用
+        slider.planetIndex = index; // 存储行星索引
         
         // 存储滑块的初始X位置和限制范围
         slider.minX = sliderX;
@@ -119,12 +136,15 @@ export class GravitySystem {
             this.lastDragTime = currentTime;
             this.lastDragX = newX;
             
-            // 计算幂律值 (-4 到 0 的范围)
+            // 计算幂律值 (-4 到 -1 的范围)
             const t = (newX - slider.minX) / (slider.maxX - slider.minX);
-            const power = Phaser.Math.Linear(-4, 0, t);
+            const power = Phaser.Math.Linear(this.minPower, this.maxPower, t);
             
             // 更新该行星的幂律
             this.planetPowers.set(planet, power);
+            
+            // 更新键盘控制的目标值
+            this.keyboardControls[`planet${index + 1}`].targetPower = power;
             
             // 更新显示
             powerText.setText(`r^${power.toFixed(2)}`);
@@ -146,39 +166,127 @@ export class GravitySystem {
         const minX = sliderX;
         const maxX = sliderX + 150;
         
-        // 创建刻度线和标签
-        for (let power = -4; power <= 0; power++) {
-            const t = (power + 4) / 4; // 映射到0-1
+        // 创建刻度线和标签（现在r越大越强，所以标签顺序要反过来）
+        for (let power = this.minPower; power <= this.maxPower; power += 0.5) {
+            const t = (power - this.minPower) / (this.maxPower - this.minPower);
             const x = Phaser.Math.Linear(minX, maxX, t);
             
             // 刻度线
             scene.add.rectangle(x, sliderY, 2, 10, 0xffffff);
             
-            // 每2个刻度显示一个标签，避免重叠
-            if (power % 2 === 0) {
+            // 整数刻度显示标签
+            if (power % 1 === 0) {
                 scene.add.text(x, sliderY + 10, `r^${power}`, {
                     fontSize: '10px',
                     fill: '#ffffff'
                 }).setOrigin(0.5);
             }
         }
-        /*
-        // 两端的额外说明
-        scene.add.text(minX - 5, sliderY - 10, '强', {
+        
+        // 两端的说明（现在r越大越强）
+        scene.add.text(minX - 5, sliderY - 10, '弱', {
             fontSize: '12px',
             fill: '#ffffff'
         }).setOrigin(1, 0.5);
         
-        scene.add.text(maxX + 5, sliderY - 10, '弱', {
+        scene.add.text(maxX + 5, sliderY - 10, '强', {
             fontSize: '12px',
             fill: '#ffffff'
         }).setOrigin(0, 0.5);
-        */
     }
     
     // 获取某个行星的引力幂律
     getPlanetPower(planet) {
         return this.planetPowers.get(planet) || -2;
+    }
+    
+    // 设置行星的引力幂律
+    setPlanetPower(planetIndex, power) {
+        if (planetIndex < 0 || planetIndex >= this.planets.length) return;
+        
+        const planet = this.planets[planetIndex];
+        const clampedPower = Phaser.Math.Clamp(power, this.minPower, this.maxPower);
+        
+        this.planetPowers.set(planet, clampedPower);
+        
+        // 更新滑动条位置
+        this.updateSliderPosition(planetIndex, clampedPower);
+        
+        // 更新显示文本
+        if (this.powerTexts[planetIndex]) {
+            this.powerTexts[planetIndex].setText(`r^${clampedPower.toFixed(2)}`);
+        }
+        
+        // 更新所有卫星
+        this.updateAllSatellites();
+    }
+    
+    // 更新滑动条位置
+    updateSliderPosition(planetIndex, power) {
+        if (planetIndex < 0 || planetIndex >= this.sliders.length) return;
+        
+        const sliderData = this.sliders[planetIndex];
+        if (!sliderData || !sliderData.slider) return;
+        
+        const slider = sliderData.slider;
+        const t = (power - this.minPower) / (this.maxPower - this.minPower);
+        const newX = Phaser.Math.Linear(slider.minX, slider.maxX, t);
+        
+        slider.x = newX;
+    }
+    
+    // 键盘控制更新
+    updateKeyboardControls() {
+        const deltaTime = this.scene.game.loop.delta / 1000;
+        
+        // 处理行星1的控制（A和D键）
+        this.updatePlanetControl('planet1', deltaTime);
+        
+        // 处理行星2的控制（左右箭头键）
+        this.updatePlanetControl('planet2', deltaTime);
+    }
+    
+    // 更新单个行星的键盘控制
+    updatePlanetControl(planetKey, deltaTime) {
+        const control = this.keyboardControls[planetKey];
+        const planetIndex = planetKey === 'planet1' ? 0 : 1;
+        
+        // 计算目标方向
+        let targetDirection = 0;
+        if (control.right) targetDirection += 1;
+        if (control.left) targetDirection -= 1;
+        
+        if (targetDirection !== 0) {
+            // 加速（减慢速率）
+            control.velocity += targetDirection * this.accelerationRate * deltaTime;
+            control.velocity = Phaser.Math.Clamp(control.velocity, -this.maxVelocity, this.maxVelocity);
+        } else {
+            // 减速（有惯性效果）
+            if (Math.abs(control.velocity) > 0.01) {
+                control.velocity *= this.decelerationRate;
+            } else {
+                control.velocity = 0;
+            }
+        }
+        
+        // 更新幂律值
+        if (Math.abs(control.velocity) > 0.01) {
+            const newPower = control.targetPower + control.velocity * deltaTime;
+            this.setPlanetPower(planetIndex, newPower);
+            control.targetPower = newPower;
+        }
+    }
+    
+    // 设置键盘控制状态
+    setKeyState(planetKey, key, isDown) {
+        const control = this.keyboardControls[planetKey];
+        if (!control) return;
+        
+        if (key === 'left') {
+            control.left = isDown;
+        } else if (key === 'right') {
+            control.right = isDown;
+        }
     }
     
     updateAllSatellites() {
@@ -202,5 +310,15 @@ export class GravitySystem {
     // 获取所有行星
     getAllPlanets() {
         return this.planets;
+    }
+    
+    // 获取物理距离（考虑比例尺）
+    getPhysicalDistance(displayDistance) {
+        return displayDistance * this.distanceScale;
+    }
+    
+    // 获取显示距离（考虑比例尺）
+    getDisplayDistance(physicalDistance) {
+        return physicalDistance / this.distanceScale;
     }
 }

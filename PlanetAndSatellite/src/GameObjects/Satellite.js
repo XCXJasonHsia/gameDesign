@@ -10,6 +10,10 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
         this.targetPlanets = targetPlanets; // 现在是一个行星数组
         this.gravitySystem = gravitySystem;
         
+        // 存储初始位置
+        this.initialX = x;
+        this.initialY = y;
+        
         // 禁用物理引擎的自动位置更新
         this.body.enable = false;
         
@@ -25,8 +29,8 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
         this.lastUpdateTime = 0;
         this.fixedTimeStep = 1 / 200;
         
-        // 初始化速度（给一个初始速度以避免直接落向行星）
-        this.initializeOrbitalVelocity();
+        // 初始化速度（在两个行星正中间上下震荡）
+        this.initializeOscillationVelocity();
 
         // 存储轨道轨迹（用于可视化）
         this.trail = [];
@@ -40,19 +44,22 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
 
         // 设置星球宽度
         this.displayWidth = 15;
+        this.displayHeight = 15;
         
         // 粘附状态
         this.isAttached = false;
         this.attachedPlanet = null;
         
-         // 卫星属性
+        // 卫星属性
         this.mass = 10; // 卫星质量
         this.collisionDamageMultiplier = 0.005 // 伤害系数
-        //this.lastImpactTime = 0; // 上次撞击时间
-        //this.impactCooldown = 1000; // 撞击冷却时间（毫秒）
 
         // 存储每个行星的引力加速度贡献（用于调试）
         this.planetAccelerations = new Map();
+        
+        // 碰撞后重置的计时器
+        this.resetTimer = null;
+        this.resetDelay = 1000; // 1秒后重置
     }
 
     setupCollisionProperties() {
@@ -138,6 +145,32 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
         );
     }
     
+    // 初始化上下震荡速度（在两个行星正中间）
+    initializeOscillationVelocity() {
+        // 计算两个行星的中心点
+        const centerX = (this.targetPlanets[0].x + this.targetPlanets[1].x) / 2;
+        const centerY = (this.targetPlanets[0].y + this.targetPlanets[1].y) / 2;
+        
+        // 设置卫星位置在两个行星正中间
+        this.position.set(centerX, centerY);
+        this.x = centerX;
+        this.y = centerY;
+        
+        // 给一个较小的垂直速度，实现稳定的上下震荡
+        const oscillationSpeed = 50; // 减小震荡速度，避免飞出去
+        const initialVelocity = new Phaser.Math.Vector2(0, -oscillationSpeed); // 向上运动
+        
+        // 设置前一帧位置（韦尔莱积分法需要前一帧位置）
+        const dt = this.fixedTimeStep;
+        this.previousPosition.set(
+            this.position.x - initialVelocity.x * dt,
+            this.position.y - initialVelocity.y * dt
+        );
+        
+        // 设置当前速度
+        this.body.velocity.set(initialVelocity.x, initialVelocity.y);
+    }
+    
     // 更新从所有行星接收的引力
     updateGravityFromPlanets() {
         // 这个方法在引力系统参数改变时被调用
@@ -145,10 +178,9 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
     }
     
     update(time, delta) {
-        // 如果已经粘附到某个行星，不进行物理更新
+        // 如果已经粘附到某个行星，检查是否需要重置
         if (this.isAttached) {
-            // 保持位置与行星相对固定
-            this.updateAttachedPosition();
+            this.updateAttachedState(time);
             return;
         }
         
@@ -188,6 +220,19 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
         
         // 更新轨迹
         this.updateTrail();
+    }
+    
+    // 更新粘附状态
+    updateAttachedState(time) {
+        if (!this.attachedPlanet) return;
+        
+        // 保持位置与行星相对固定
+        this.updateAttachedPosition();
+        
+        // 检查重置计时器
+        if (this.resetTimer && time >= this.resetTimer) {
+            this.resetToInitialState();
+        }
     }
     
     // 更新粘附位置
@@ -243,23 +288,25 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
         }
     }
     
-    // 计算单个行星对卫星的加速度
+    // 计算单个行星对卫星的加速度（使用物理距离比例尺）
     computeAccelerationFromPlanet(planet) {
         const dx = planet.x - this.position.x;
         const dy = planet.y - this.position.y;
         
-        const distanceSquared = dx * dx + dy * dy;
-        const distance = Math.sqrt(distanceSquared);
+        const displayDistance = Math.sqrt(dx * dx + dy * dy);
+        // 使用物理距离（考虑比例尺）
+        const physicalDistance = this.gravitySystem ? 
+            this.gravitySystem.getPhysicalDistance(displayDistance) : displayDistance;
         
         // 避免除零和过近的距离
-        if (distance < 10) {
+        if (physicalDistance < 10) {
             return new Phaser.Math.Vector2(0, 0);
         }
         
         // 从引力系统获取该行星的幂律
         const power = this.gravitySystem ? this.gravitySystem.getPlanetPower(planet) : -2;
         
-        // 根据幂律计算加速度
+        // 根据幂律计算加速度（使用物理距离）
         let accMagnitude;
         
         if (power === 0) {
@@ -267,19 +314,22 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
             accMagnitude = this.G * planet.body.mass;
         } else if (power === -1) {
             // r^-1
-            accMagnitude = this.G * planet.body.mass / distance;
+            accMagnitude = this.G * planet.body.mass / physicalDistance;
         } else if (power === -2) {
             // r^-2 (万有引力)
-            accMagnitude = this.G * planet.body.mass / distanceSquared;
+            accMagnitude = this.G * planet.body.mass / (physicalDistance * physicalDistance);
         } else {
             // 通用幂律：a = G * M * r^power
-            accMagnitude = this.G * planet.body.mass * Math.pow(distance, power);
+            accMagnitude = this.G * planet.body.mass * Math.pow(physicalDistance, power);
         }
         
-        // 加速度向量
+        // 加速度向量（方向使用显示距离计算）
+        const directionX = dx / displayDistance;
+        const directionY = dy / displayDistance;
+        
         return new Phaser.Math.Vector2(
-            (dx / distance) * accMagnitude,
-            (dy / distance) * accMagnitude
+            directionX * accMagnitude,
+            directionY * accMagnitude
         );
     }
     
@@ -381,7 +431,41 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
             this.trailGraphics.clear();
         }
         
-        //console.log(`卫星已粘附到行星上，造成${damage.toFixed(2)}点伤害`);
+        // 设置重置计时器（1秒后重置）
+        this.resetTimer = this.scene.time.now + this.resetDelay;
+        
+        console.log(`卫星撞击行星，造成${damage.toFixed(2)}点伤害，1秒后重置`);
+    }
+    
+    // 重置到初始状态
+    resetToInitialState() {
+        // 重置黏附状态
+        this.isAttached = false;
+        this.attachedPlanet = null;
+        this.resetTimer = null;
+        
+        // 重置位置到初始位置
+        this.position.set(this.initialX, this.initialY);
+        this.previousPosition.set(this.initialX, this.initialY);
+        
+        // 重新初始化震荡速度
+        this.initializeOscillationVelocity();
+        
+        // 清除轨迹
+        this.trail = [];
+        if (this.trailGraphics) {
+            this.trailGraphics.clear();
+        }
+        
+        // 重置时间跟踪
+        this.lastUpdateTime = 0;
+        
+        // 更新显示位置
+        this.x = this.position.x;
+        this.y = this.position.y;
+        this.body.position.set(this.position.x, this.position.y);
+        
+        console.log('卫星已重置到初始状态');
     }
     
     updateTrail() {
@@ -437,23 +521,9 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
         }
     }
     
-    // 重置卫星状态
+    // 重置卫星状态（手动重置）
     reset() {
-        // 重置黏附状态
-        this.isAttached = false;
-        this.attachedPlanet = null;
-        
-        // 禁用物理身体
-        this.body.enable = false;
-        
-        // 重置轨迹
-        this.trail = [];
-        if (this.trailGraphics) {
-            this.trailGraphics.clear();
-        }
-        
-        // 重置时间跟踪
-        this.lastUpdateTime = 0;
+        this.resetToInitialState();
     }
 
     destroy() {
