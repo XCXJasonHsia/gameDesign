@@ -45,6 +45,12 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
         this.isAttached = false;
         this.attachedPlanet = null;
         
+         // 卫星属性
+        this.mass = 10; // 卫星质量
+        this.collisionDamageMultiplier = 0.005 // 伤害系数
+        //this.lastImpactTime = 0; // 上次撞击时间
+        //this.impactCooldown = 1000; // 撞击冷却时间（毫秒）
+
         // 存储每个行星的引力加速度贡献（用于调试）
         this.planetAccelerations = new Map();
     }
@@ -319,6 +325,23 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
         this.isAttached = true;
         this.attachedPlanet = planet;
         
+        // 计算碰撞时的动量
+        const velocityMagnitude = Math.sqrt(
+            this.body.velocity.x * this.body.velocity.x + 
+            this.body.velocity.y * this.body.velocity.y
+        );
+        
+        // 动量 = 质量 × 速度
+        const momentum = this.mass * velocityMagnitude;
+        
+        // 计算伤害：伤害与动量成正比
+        const damage = momentum * this.collisionDamageMultiplier;
+        
+        // 对行星造成伤害
+        if (planet.takeDamage) {
+            planet.takeDamage(damage);
+        }
+        
         // 停止所有运动
         this.body.velocity.set(0, 0);
         this.acceleration.set(0, 0);
@@ -358,7 +381,7 @@ export class Satellite extends Phaser.Physics.Arcade.Sprite {
             this.trailGraphics.clear();
         }
         
-        console.log(`卫星已粘附到行星上`);
+        //console.log(`卫星已粘附到行星上，造成${damage.toFixed(2)}点伤害`);
     }
     
     updateTrail() {

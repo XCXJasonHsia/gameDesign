@@ -1,7 +1,7 @@
 export class GravitySystem {
     constructor(scene) {
         this.scene = scene;
-        this.G = 1000;   // 引力常数
+        this.G = 100;   // 引力常数
         
         // 存储所有天体的数组
         this.bodies = [];
@@ -14,6 +14,11 @@ export class GravitySystem {
         // 创建UI
         this.sliders = [];
         this.powerTexts = [];
+        
+        // 添加最大拖动速度（像素/毫秒）
+        this.maxDragSpeed = 0.25;
+        this.lastDragTime = 0;
+        this.lastDragX = 0;
     }
     
     // 添加行星时创建对应的滑动条
@@ -65,22 +70,57 @@ export class GravitySystem {
         slider.setInteractive({ draggable: true });
         slider.planetRef = planet; // 存储对行星的引用
         
+        // 存储滑块的初始X位置和限制范围
+        slider.minX = sliderX;
+        slider.maxX = sliderX + 150;
+        slider.startX = slider.x;
+        
         // 创建滑动条刻度
         this.createSliderTicks(sliderX, sliderY, planet);
         
         // 滑动条拖动事件
         scene.input.setDraggable(slider);
         
+        // 添加拖动开始时的记录
+        slider.on('dragstart', () => {
+            this.lastDragTime = scene.time.now;
+            this.lastDragX = slider.x;
+        });
+        
         slider.on('drag', (pointer, dragX, dragY) => {
-            // 限制滑动范围
-            const minX = sliderX;
-            const maxX = sliderX + 150;
-            const newX = Phaser.Math.Clamp(dragX, minX, maxX);
+            // 计算时间差
+            const currentTime = scene.time.now;
+            const timeDiff = currentTime - this.lastDragTime;
             
+            // 计算拖动距离
+            const dragDistance = Math.abs(dragX - this.lastDragX);
+            
+            // 计算速度（像素/毫秒）
+            const dragSpeed = timeDiff > 0 ? dragDistance / timeDiff : 0;
+            
+            // 如果速度超过最大速度，限制拖动
+            let newX;
+            if (dragSpeed > this.maxDragSpeed) {
+                // 计算允许的最大移动距离
+                const maxDistance = this.maxDragSpeed * timeDiff;
+                const direction = dragX > this.lastDragX ? 1 : -1;
+                newX = this.lastDragX + (maxDistance * direction);
+            } else {
+                newX = dragX;
+            }
+            
+            // 限制滑动范围
+            newX = Phaser.Math.Clamp(newX, slider.minX, slider.maxX);
+            
+            // 更新滑块位置
             slider.x = newX;
             
+            // 更新拖动记录
+            this.lastDragTime = currentTime;
+            this.lastDragX = newX;
+            
             // 计算幂律值 (-4 到 0 的范围)
-            const t = (newX - minX) / (maxX - minX);
+            const t = (newX - slider.minX) / (slider.maxX - slider.minX);
             const power = Phaser.Math.Linear(-4, 0, t);
             
             // 更新该行星的幂律
@@ -92,29 +132,7 @@ export class GravitySystem {
             // 实时更新所有卫星的引力计算
             this.updateAllSatellites();
         });
-        
-        // 点击滑动条背景也可以调整
-        sliderBg.setInteractive();
-        sliderBg.on('pointerdown', (pointer) => {
-            const minX = sliderX;
-            const maxX = sliderX + 150;
-            
-            slider.x = Phaser.Math.Clamp(pointer.x, minX, maxX);
-            
-            // 计算幂律值
-            const t = (slider.x - minX) / (maxX - minX);
-            const power = Phaser.Math.Linear(-4, 0, t);
-            
-            // 更新该行星的幂律
-            this.planetPowers.set(planet, power);
-            
-            // 更新显示
-            powerText.setText(`r^${power.toFixed(2)}`);
-            
-            // 实时更新所有卫星的引力计算
-            this.updateAllSatellites();
-        });
-        
+
         this.sliders.push({
             slider,
             powerText,
@@ -144,7 +162,7 @@ export class GravitySystem {
                 }).setOrigin(0.5);
             }
         }
-        
+        /*
         // 两端的额外说明
         scene.add.text(minX - 5, sliderY - 10, '强', {
             fontSize: '12px',
@@ -155,6 +173,7 @@ export class GravitySystem {
             fontSize: '12px',
             fill: '#ffffff'
         }).setOrigin(0, 0.5);
+        */
     }
     
     // 获取某个行星的引力幂律
