@@ -47,7 +47,8 @@ export class GravitySystem {
         this.planetPowers.set(planet, -2);
         
         // 创建对应的滑动条UI
-        this.createPlanetSlider(planet, index);
+        if (this.scene.powerManipulation === true)
+            this.createPlanetSlider(planet, index);
     }
     
     createPlanetSlider(planet, index) {
@@ -66,6 +67,7 @@ export class GravitySystem {
             backgroundColor: '#00000080',
             padding: { x: 5, y: 3 }
         });
+        planetLabel.setDepth(1000); // 确保在最上层
         
         // 创建引力幂律显示文本
         const powerText = scene.add.text(sliderX, sliderY - 30, `r^${this.planetPowers.get(planet)}`, {
@@ -74,11 +76,13 @@ export class GravitySystem {
             backgroundColor: '#00000080',
             padding: { x: 10, y: 5 }
         });
+        powerText.setDepth(1000); // 确保在最上层
         this.powerTexts.push(powerText);
         
         // 创建滑动条背景（灰色）
         const sliderBg = scene.add.rectangle(sliderX, sliderY, 150, 8, 0x666666);
         sliderBg.setOrigin(0, 0.5);
+        sliderBg.setDepth(1000); // 确保在最上层
         
         // 创建滑动条（白色滑块）
         const slider = scene.add.rectangle(sliderX + 75, sliderY, 20, 30, 0xffffff);
@@ -86,6 +90,7 @@ export class GravitySystem {
         slider.setInteractive({ draggable: true });
         slider.planetRef = planet; // 存储对行星的引用
         slider.planetIndex = index; // 存储行星索引
+        slider.setDepth(1000); // 确保在最上层
         
         // 存储滑块的初始X位置和限制范围
         slider.minX = sliderX;
@@ -172,27 +177,31 @@ export class GravitySystem {
             const x = Phaser.Math.Linear(minX, maxX, t);
             
             // 刻度线
-            scene.add.rectangle(x, sliderY, 2, 10, 0xffffff);
+            const tick = scene.add.rectangle(x, sliderY, 2, 10, 0xffffff);
+            tick.setDepth(1000); // 确保在最上层
             
             // 整数刻度显示标签
             if (power % 1 === 0) {
-                scene.add.text(x, sliderY + 10, `r^${power}`, {
+                const label = scene.add.text(x, sliderY + 10, `r^${power}`, {
                     fontSize: '10px',
                     fill: '#ffffff'
                 }).setOrigin(0.5);
+                label.setDepth(1000); // 确保在最上层
             }
         }
         
         // 两端的说明（现在r越大越强）
-        scene.add.text(minX - 5, sliderY - 10, '弱', {
+        const weakLabel = scene.add.text(minX - 5, sliderY - 10, '弱', {
             fontSize: '12px',
             fill: '#ffffff'
         }).setOrigin(1, 0.5);
+        weakLabel.setDepth(1000); // 确保在最上层
         
-        scene.add.text(maxX + 5, sliderY - 10, '强', {
+        const strongLabel = scene.add.text(maxX + 5, sliderY - 10, '强', {
             fontSize: '12px',
             fill: '#ffffff'
         }).setOrigin(0, 0.5);
+        strongLabel.setDepth(1000); // 确保在最上层
     }
     
     // 获取某个行星的引力幂律
@@ -304,7 +313,9 @@ export class GravitySystem {
         satellite.gravitySystem = this;
         
         // 初始化卫星从所有行星接收引力
-        satellite.updateGravityFromPlanets();
+        if (satellite.updateGravityFromPlanets) {
+            satellite.updateGravityFromPlanets();
+        }
     }
     
     // 获取所有行星
