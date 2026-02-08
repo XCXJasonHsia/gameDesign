@@ -14,6 +14,7 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         // 存储初始位置
         this.initialX = x;
         this.initialY = y;
+        this.initialVelocity = null;
         
         // 禁用物理引擎的自动位置更新
         this.body.enable = false;
@@ -28,7 +29,7 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         this.fixedTimeStep = 1 / 200;
 
         // to be defined in the inheritance class
-        this.initializeVelocity();
+        this.initializeVelocityForVerlet();
 
         // 存储轨道轨迹（用于可视化）
         this.trail = [];
@@ -56,7 +57,24 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         this.resetDelay = 1000; // 1秒后重置
     }
 
-    initializeVelocity() {}
+    initializeVelocityForVerlet() {
+        // 确保有目标行星
+        if (!this.targetPlanets || this.targetPlanets.length === 0) {
+            console.warn('No target planets specified for satellite');
+            return;
+        }
+        
+        this.initializeVelocity();
+            
+        // 使用固定时间步长计算前一帧位置
+        const dt = this.fixedTimeStep;
+        this.previousPosition.set(
+            this.position.x - this.initialVelocity.x * dt,
+            this.position.y - this.initialVelocity.y * dt
+        );
+    }
+
+    initializeVelocity() {};
 
     // show the trail of the satellite
     createTrailGraphics(scene) {

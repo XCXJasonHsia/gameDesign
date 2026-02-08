@@ -6,12 +6,6 @@ export class RocketEg extends GenericRocket {
     }
 
     initializeVelocity() {
-        // 确保有目标行星
-        if (!this.targetPlanets || this.targetPlanets.length === 0) {
-            console.warn('No target planets specified for satellite');
-            return;
-        }
-        
         // 选择第一个目标行星作为轨道中心
         this.targetPlanet = this.targetPlanets[0];
         
@@ -24,7 +18,7 @@ export class RocketEg extends GenericRocket {
         
         // 避免除零错误
         if (displayDistance === 0) {
-            console.warn('Rocket is at the same position as the planet');
+            console.warn('Satellite is at the same position as the planet');
             return;
         }
         
@@ -39,7 +33,7 @@ export class RocketEg extends GenericRocket {
         
         // 避免除零和过近的距离
         if (physicalDistance < 10) {
-            console.warn('Rocket is too close to the planet');
+            console.warn('Satellite is too close to the planet');
             return;
         }
         
@@ -68,7 +62,7 @@ export class RocketEg extends GenericRocket {
             }
             
             // 限制速度范围以确保稳定运动
-            orbitalSpeed = Phaser.Math.Clamp(orbitalSpeed, 1, 1000);
+            orbitalSpeed = Phaser.Math.Clamp(orbitalSpeed, 1, 100);
             
             // 计算切向方向（垂直于径向）
             const tangent = new Phaser.Math.Vector2(
@@ -80,26 +74,10 @@ export class RocketEg extends GenericRocket {
             tangent.normalize();
             
             // 设置初始速度
-            const initialVelocity = tangent.scale(orbitalSpeed * 2 / 3);
-            
-            // 使用固定时间步长计算前一帧位置
-            const dt = this.fixedTimeStep;
-            this.previousPosition.set(
-                this.position.x - initialVelocity.x * dt,
-                this.position.y - initialVelocity.y * dt
-            );
-            
-            // 调试信息
-            console.log('Rocket initialized with:', {
-                orbitalSpeed,
-                power,
-                G,
-                physicalDistance,
-                displayDistance
-            });
-            
-        } catch (error) {
-            console.error('Error calculating orbital velocity:', error);
+            this.initialVelocity = tangent.scale(orbitalSpeed * 2 / 3);
+        } catch(error) {
+            console.error('Satellite:initializeVelocity failed.');
         }
+        
     }
 }

@@ -6,12 +6,6 @@ export class SatelliteEg extends GenericSatellite {
     }
     
     initializeVelocity() {
-        // 确保有目标行星
-        if (!this.targetPlanets || this.targetPlanets.length === 0) {
-            console.warn('No target planets specified for satellite');
-            return;
-        }
-        
         // 选择第一个目标行星作为轨道中心
         this.targetPlanet = this.targetPlanets[0];
         
@@ -80,39 +74,16 @@ export class SatelliteEg extends GenericSatellite {
             tangent.normalize();
             
             // 设置初始速度
-            const initialVelocity = tangent.scale(orbitalSpeed * 2 / 3);
-            
-            // 使用固定时间步长计算前一帧位置
-            const dt = this.fixedTimeStep;
-            this.previousPosition.set(
-                this.position.x - initialVelocity.x * dt,
-                this.position.y - initialVelocity.y * dt
-            );
-            
-            // 调试信息
-            console.log('Satellite initialized with:', {
-                orbitalSpeed,
-                power,
-                G,
-                physicalDistance,
-                displayDistance
-            });
-            
-        } catch (error) {
-            console.error('Error calculating orbital velocity:', error);
+            this.initialVelocity = tangent.scale(orbitalSpeed * 2 / 3);
+        } catch(error) {
+            console.error('Satellite:initializeVelocity failed.');
         }
+        
     }
     /*
     initializeVelocity() {
          // 给一个初始切向速度
-        const initialVelocity = new Phaser.Math.Vector2(0, 30);
-        
-        // 设置前一帧位置
-        const dt = this.fixedTimeStep;
-        this.previousPosition.set(
-            this.position.x - initialVelocity.x * dt,
-            this.position.y - initialVelocity.y * dt
-        );
+        this.initialVelocity = new Phaser.Math.Vector2(0, 30);
     }
     */
 }
