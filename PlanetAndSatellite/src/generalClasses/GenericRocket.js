@@ -3,7 +3,7 @@ import { GenericSatellite } from './GenericSatellite.js'
 export class GenericRocket extends GenericSatellite {
     constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, infiniteFuel) {
         super(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem);
-
+        
         // Rocket特有属性
         this.thrustPower = 1000000000; // 推进器推力
         this.fuel = 1000; // 燃料量
@@ -30,8 +30,9 @@ export class GenericRocket extends GenericSatellite {
         
         // 初始化火箭朝向
         this.initializeRocketOrientation();
+        
     }
-
+    
     createThrusterEffects(scene) {
         // 前向推进器火焰
         this.forwardFlame = scene.add.graphics();
@@ -108,12 +109,12 @@ export class GenericRocket extends GenericSatellite {
         
         // 更新控制状态
         this.updateControls();
-
+        
         // 检查燃料耗尽
         if (this.infiniteFuel === true && this.fuel <= 0) {
             this.disableThrusters();
         }
-
+        
         // 调用父类的update方法进行基本物理更新
         this.delta = delta;
         super.update(time, delta);
@@ -357,7 +358,7 @@ export class GenericRocket extends GenericSatellite {
             this.rotation = angle;
         }
     }
-
+    /*
     destroy() {
         // 清理火焰效果
         if (this.forwardFlame) {
@@ -401,4 +402,5 @@ export class GenericRocket extends GenericSatellite {
         // 调用父类的destroy方法
         super.destroy();
     }
+    */
 }

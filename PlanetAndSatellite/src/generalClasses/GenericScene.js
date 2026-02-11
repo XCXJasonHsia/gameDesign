@@ -9,7 +9,7 @@ export class GenericScene extends Phaser.Scene {
         }
         super(sceneKey);
         this.sceneKey = sceneKey;
-        /*
+        
         // 是否跟随
         this.cameraFollow = cameraFollow;
         //to change power or not
@@ -38,12 +38,14 @@ export class GenericScene extends Phaser.Scene {
 
         // 判断是否暂停的bool型
         this.isPaused = false;
-        */
+
+        this.previousState = {};
     }
     create() {
-        /*
+        
         // 默认只有一个行星，双星系统还没开发，之后再写
         this.initializeBackground();
+        
         this.initializePlanets();
         
         
@@ -57,6 +59,7 @@ export class GenericScene extends Phaser.Scene {
         
         // 现在初始化卫星和火箭，因为引力系统已经准备好了
         this.initializeSatellites();
+        
         this.initializeRocket();
         
         
@@ -65,7 +68,7 @@ export class GenericScene extends Phaser.Scene {
             this.gravitySystem.addSatellite(satellite);
         });
         this.gravitySystem.addSatellite(this.rocket);
-
+        
         // 设置了rocket和Satellite之后再确定camera跟随的对象,若有多个卫星则默认跟随第一个
         if(this.cameraFollow) {
             if(this.leader_str === 'rocket' && this.rocket !== null) {
@@ -87,13 +90,14 @@ export class GenericScene extends Phaser.Scene {
             // 设置初始缩放
             this.cameras.main.setZoom(this.cameraZoom);
         }
-        */
+        
         // 设置键盘控制
         this.setupKeyboardControls();
         
         // 创建说明文本
         this.scene.launch('GenericUIScene');
         this.scene.bringToTop('GenericUIScene');
+        
     }
 
     // 这几个方法需要在继承类中实现！（初始化）
@@ -164,11 +168,12 @@ export class GenericScene extends Phaser.Scene {
         
         // 重新初始化所有元素
         this.initializePlanets();
-        this.initializeRocket();
-        this.initializeSatellites();
         
         // 重新初始化引力系统
         this.gravitySystem = new GravitySystem(this);
+
+        this.initializeRocket();
+        this.initializeSatellites();
         
         // 添加行星到引力系统
         this.planets.forEach((planet, index) => {
@@ -179,10 +184,8 @@ export class GenericScene extends Phaser.Scene {
         this.satellites.forEach(satellite => {
             this.gravitySystem.addSatellite(satellite);
         });
-
-        if (this.rocket) {
-            this.gravitySystem.addSatellite(this.rocket);
-        }
+        this.gravitySystem.addSatellite(this.rocket);
+        
         
         // 重新设置相机跟随
         if(this.cameraFollow) {
@@ -300,8 +303,11 @@ export class GenericScene extends Phaser.Scene {
     // 回到主界面（会出问题）
     goToMainMenu() {
         // 启动Game场景，让Phaser自动处理场景切换
-        this.scene.stop(this.sceneKey);
-        this.scene.start('Game');
+        //this.scene.stop(this.sceneKey);
+        this.scene.start('Game', {
+                    fromScene: 'SceneEg',
+                    previousState: this.previousState
+                });
     }
     
     // 显示暂停覆盖层
@@ -372,7 +378,7 @@ export class GenericScene extends Phaser.Scene {
     update(time, delta) {
         // 若暂停则停止更新
         if(this.isPaused) return;
-        /*
+        
         // 更新引力系统（处理键盘控制等）
         if (this.powerManipulation === true && this.gravitySystem) {
             this.gravitySystem.updateKeyboardControls();
@@ -398,7 +404,7 @@ export class GenericScene extends Phaser.Scene {
         
         // 检查火箭是否飞出边界（如果飞出太远，重置位置）
         this.checkLeaderBoundaries();
-        */
+        
     }
     
     checkLeaderBoundaries() {
@@ -418,7 +424,7 @@ export class GenericScene extends Phaser.Scene {
             this.resetLeader();
         }
     }
-    /*
+    
     // 清理资源
     destroy() {
         // 移除暂停覆盖层
@@ -454,7 +460,7 @@ export class GenericScene extends Phaser.Scene {
         // 调用父类的destroy方法，让Phaser自动处理场景清理
         super.destroy();
     }
-    */
+    
 }
 
 
