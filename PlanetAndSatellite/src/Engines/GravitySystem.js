@@ -332,4 +332,40 @@ export class GravitySystem {
     getDisplayDistance(physicalDistance) {
         return physicalDistance / this.distanceScale;
     }
+    
+    // 清理资源
+    destroy() {
+        // 清理所有滑动条相关的UI元素
+        this.sliders.forEach(sliderData => {
+            if (sliderData.slider) {
+                // 移除事件监听器
+                sliderData.slider.off('dragstart');
+                sliderData.slider.off('drag');
+                // 销毁滑块
+                sliderData.slider.destroy();
+            }
+            if (sliderData.powerText) {
+                sliderData.powerText.destroy();
+            }
+            if (sliderData.planetLabel) {
+                sliderData.planetLabel.destroy();
+            }
+            if (sliderData.sliderBg) {
+                sliderData.sliderBg.destroy();
+            }
+        });
+        
+        // 清空数组
+        this.sliders = [];
+        this.powerTexts = [];
+        this.bodies = [];
+        this.planets = [];
+        this.satellites = [];
+        
+        // 清空映射
+        this.planetPowers.clear();
+        
+        // 移除对场景的引用
+        this.scene = null;
+    }
 }

@@ -13,7 +13,8 @@ export class SceneEg extends GenericScene {
         const centerY = this.cameras.main.height / 2;
         this.centerX = centerX;
         this.centerY = centerY;
-        //this.add.image(centerX, centerY, 'bg');
+        const bg = this.add.image(centerX, centerY, 'bg');
+        bg.setDepth(-100); // 设置背景为最底层
     }
     
 

@@ -143,6 +143,7 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
             
             // 检查碰撞
             if (this.checkCollisionWithSatellite(otherSatellite)) {
+                //console.log('satellites about to collide.');
                 this.handleSatelliteCollision(otherSatellite);
                 break;
             }
@@ -304,7 +305,7 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         this.previousPosition.set(this.initialX, this.initialY);
         
         // 重新初始化速度
-        this.initializeVelocity();
+        this.initializeVelocityForVerlet();
         
         // 清除轨迹
         this.trail = [];

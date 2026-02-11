@@ -1,6 +1,6 @@
 # gameDesign
 
-a collaborative project with jsm \& wzx
+a collaborative project with jsm & wzx
 
 
 

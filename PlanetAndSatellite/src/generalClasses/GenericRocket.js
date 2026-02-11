@@ -22,7 +22,7 @@ export class GenericRocket extends GenericSatellite {
         this.createThrusterEffects(scene);
         
         // 创建燃料显示UI
-        if(this.infiniteFuel === true)
+        if(this.infiniteFuel === false)
             this.createFuelDisplay(scene);
         
         // 设置按键监听
@@ -53,7 +53,7 @@ export class GenericRocket extends GenericSatellite {
     createFuelDisplay(scene) {
         // 燃料条背景
         this.fuelBarBg = scene.add.rectangle(
-            100, 50, 
+            20, 50, 
             200, 15, 
             0x333333
         );
@@ -63,7 +63,7 @@ export class GenericRocket extends GenericSatellite {
         
         // 燃料条前景
         this.fuelBar = scene.add.rectangle(
-            100, 50, 
+            20, 50, 
             200, 15, 
             0x00ff00
         );
@@ -73,8 +73,8 @@ export class GenericRocket extends GenericSatellite {
         
         // 燃料文本
         this.fuelText = scene.add.text(
-            210, 50,
-            `fuel: ${this.fuel}/${this.maxFuel}`,
+            130, 50,
+            `燃料: ${this.fuel}/${this.maxFuel}`,
             {
                 fontSize: '14px',
                 fill: '#ffffff',
@@ -324,6 +324,11 @@ export class GenericRocket extends GenericSatellite {
         if (this.fuel > this.maxFuel) {
             this.fuel = this.maxFuel;
         }
+    }
+
+    resetToInitialState() {
+        this.fuel = this.maxFuel;
+        super.resetToInitialState();
     }
 
     // 初始化火箭朝向

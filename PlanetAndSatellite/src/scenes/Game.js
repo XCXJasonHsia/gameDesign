@@ -77,6 +77,7 @@ export class Game extends Phaser.Scene {
                 onComplete: () => {
                     // 切换到 Battle 场景
                     this.scene.start('Battle');
+                    this.scene.destroy();
                 }
             });
         });
@@ -134,6 +135,7 @@ export class Game extends Phaser.Scene {
                     // 切换到 Adventure 场景
                     // 注意：Adventure场景还没有创建，暂时先跳转到Game场景
                     this.scene.start('SceneEg');
+                    this.scene.destroy();
                     /*
                     // 暂时先显示提示信息，因为Adventure场景还没开发
                     const warningText = this.add.text(400, 480, '冒险模式开发中...', {
