@@ -4,6 +4,7 @@ import { GameOver } from './scenes/GameOver.js';
 import { Preloader } from './scenes/Preloader.js';
 import { Adventure } from './scenes/Adventure.js';
 import { Battle } from './scenes/Battle.js';
+import { GenericPreparationScene } from './scenes/GenericPreparationScene.js';
 import { GenericScene, GenericUIScene } from './generalClasses/GenericScene.js';
 import { SceneEg } from './Demonstration/SceneEg.js';
 const config = {
@@ -30,6 +31,7 @@ const config = {
         GameOver, 
         Adventure, 
         Battle, 
+        GenericPreparationScene,
         GenericUIScene,
         SceneEg
     ]

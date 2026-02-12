@@ -43,6 +43,13 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         this.displayHeight = 2 * this.radius;
         this.displayWidth = 2 * this.radius;
         
+        // 设置body尺寸
+        if (this.body) {
+            this.body.width = 2 * this.radius;
+            this.body.height = 2 * this.radius;
+            this.body.updateBounds();
+        }
+        
         // 粘附状态
         this.isAttached = false;
         this.attachedPlanet = null;
@@ -124,7 +131,8 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         // 更新显示位置
         this.x = this.position.x;
         this.y = this.position.y;
-        this.body.position.set(this.position.x, this.position.y);
+        this.body.position.set(this.position.x - this.body.width / 2, this.position.y - this.body.height / 2);
+        this.body.updateBounds();
         
         // 更新轨迹
         this.updateTrail();
@@ -157,8 +165,12 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         const dy = this.position.y - satellite.position.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
+        // 确保获取正确的半径值
+        const thisRadius = this.radius || (this.displayWidth / 2);
+        const otherRadius = satellite.radius || (satellite.displayWidth / 2);
+        
         // 计算两个卫星的半径之和
-        const minDistance = this.radius + satellite.radius;
+        const minDistance = thisRadius + otherRadius;
         
         // 如果距离小于两者半径之和，则发生碰撞
         return distance < minDistance;
@@ -197,7 +209,9 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         otherSatellite.acceleration.set(0, 0);
         
         // 调整卫星位置，使它们接触但不重叠
-        const totalRadius = this.radius + otherSatellite.radius;
+        const thisRadius = this.radius || (this.displayWidth / 2);
+        const otherRadius = otherSatellite.radius || (otherSatellite.displayWidth / 2);
+        const totalRadius = thisRadius + otherRadius;
         
         // 计算从当前卫星到另一个卫星的方向
         const dx = otherSatellite.position.x - this.position.x;
@@ -333,8 +347,12 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         const dy = this.position.y - planet.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        // 计算两个物体的半径
-        const minDistance = planet.radius + this.radius;
+        // 确保获取正确的半径值
+        const planetRadius = planet.radius || (planet.displayWidth / 2);
+        const satelliteRadius = this.radius || (this.displayWidth / 2);
+        
+        // 计算最小碰撞距离
+        const minDistance = planetRadius + satelliteRadius;
         
         // 如果距离小于两者半径之和，则发生碰撞
         return distance < minDistance;
@@ -367,8 +385,8 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         this.acceleration.set(0, 0);
         
         // 将卫星位置固定在行星上
-        const planetRadius = planet.radius || planet.displayWidth / 2;
-        const satelliteRadius = this.radius || this.displayWidth / 2;
+        const planetRadius = planet.radius || (planet.displayWidth / 2);
+        const satelliteRadius = this.radius || (this.displayWidth / 2);
         const totalRadius = planetRadius + satelliteRadius;
         
         // 计算从行星中心到卫星的方向

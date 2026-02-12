@@ -27,11 +27,7 @@ export class GenericScene extends Phaser.Scene {
         this.initialSatellitePositions = [];
         this.initialRocketPosition = null;
 
-        // 相机控制参数
-        this.cameraZoom = 1.0;
-        this.minZoom = 0.5;
-        this.maxZoom = 3.0;
-        this.zoomSpeed = 0.1;
+
         
         // 相机跟随平滑度
         this.cameraSmoothness = 0.1;
@@ -87,8 +83,7 @@ export class GenericScene extends Phaser.Scene {
             // 设置相机跟随的平滑度
             this.cameras.main.setLerp(this.cameraSmoothness, this.cameraSmoothness);
         
-            // 设置初始缩放
-            this.cameras.main.setZoom(this.cameraZoom);
+            
         }
         
         // 设置键盘控制
@@ -112,54 +107,90 @@ export class GenericScene extends Phaser.Scene {
     setupKeyboardControls() {
         // 获取键盘输入
         const keys = this.input.keyboard.addKeys({
-            plus: Phaser.Input.Keyboard.KeyCodes.PLUS,
-            minus: Phaser.Input.Keyboard.KeyCodes.MINUS,
-            equals: Phaser.Input.Keyboard.KeyCodes.EQUALS,  // 有些键盘的加号是等号键
-            zero: Phaser.Input.Keyboard.KeyCodes.ZERO,      // 重置缩放
             r: Phaser.Input.Keyboard.KeyCodes.R,            // 重置leader位置
-            pause: Phaser.Input.Keyboard.KeyCodes.ESC       // 按esc实现暂停
+            pause: Phaser.Input.Keyboard.KeyCodes.SPACE       // 按空格键实现暂停
         });
         
-        this.zoomKeys = keys;
-        
-        // 监听按键事件
-
-        if(this.cameraFollow) {
-            this.input.keyboard.on('keydown-PLUS', () => this.zoomIn());
-            this.input.keyboard.on('keydown-EQUALS', () => this.zoomIn());
-            this.input.keyboard.on('keydown-MINUS', () => this.zoomOut());
-            this.input.keyboard.on('keydown-ZERO', () => this.resetZoom());
-        }
         this.input.keyboard.on('keydown-R', () => this.resetLeader());
-        this.input.keyboard.on('keydown-ESC', () => this.gamePause());
+        this.input.keyboard.on('keydown-SPACE', () => this.gamePause());
+        
+        // 设置缩放控制
+        this.setupZoomControls();
     }
-
+    
+    // 设置缩放控制
+    setupZoomControls() {
+        // 缩放范围
+        this.minZoom = 0.6;
+        this.maxZoom = 2.5;
+        
+        // 缩放步长（增大以获得更明显的变化）
+        this.zoomStep = 0.2;
+        
+        // 缩放动画标志
+        this.isZooming = false;
+        
+        // 键盘缩放控制
+        this.input.keyboard.on('keydown-PLUS', () => this.zoomIn());
+        this.input.keyboard.on('keydown-EQUALS', () => this.zoomIn()); // 等号键作为备用
+        this.input.keyboard.on('keydown-MINUS', () => this.zoomOut());
+        
+        // 鼠标滚轮缩放控制（平滑动画）
+        this.input.on('wheel', (pointer, gameObjects, deltaX, deltaY, deltaZ) => {
+            if (this.isZooming) return; // 如果正在缩放动画中，忽略新的滚轮事件
+            
+            const currentZoom = this.cameras.main.zoom;
+            let targetZoom;
+            
+            if (deltaY < 0) {
+                // 放大
+                targetZoom = Math.min(currentZoom + this.zoomStep, this.maxZoom);
+            } else if (deltaY > 0) {
+                // 缩小
+                targetZoom = Math.max(currentZoom - this.zoomStep, this.minZoom);
+            }
+            
+            // 如果目标缩放值与当前值不同，执行平滑缩放动画
+            if (targetZoom && targetZoom !== currentZoom) {
+                this.smoothZoomTo(targetZoom);
+            }
+        });
+    }
+    
+    // 放大
     zoomIn() {
-        this.cameraZoom = Phaser.Math.Clamp(
-            this.cameraZoom + this.zoomSpeed, 
-            this.minZoom, 
-            this.maxZoom
-        );
-        this.updateCameraZoom();
+        const currentZoom = this.cameras.main.zoom;
+        if (currentZoom < this.maxZoom) {
+            const targetZoom = Math.min(currentZoom + this.zoomStep, this.maxZoom);
+            this.smoothZoomTo(targetZoom);
+        }
     }
     
+    // 缩小
     zoomOut() {
-        this.cameraZoom = Phaser.Math.Clamp(
-            this.cameraZoom - this.zoomSpeed, 
-            this.minZoom, 
-            this.maxZoom
-        );
-        this.updateCameraZoom();
+        const currentZoom = this.cameras.main.zoom;
+        if (currentZoom > this.minZoom) {
+            const targetZoom = Math.max(currentZoom - this.zoomStep, this.minZoom);
+            this.smoothZoomTo(targetZoom);
+        }
     }
     
-    resetZoom() {
-        this.cameraZoom = 1.0;
-        this.updateCameraZoom();
-    }
-    
-    updateCameraZoom() {
-        // 平滑过渡到目标缩放
-        this.cameras.main.zoomTo(this.cameraZoom, 300);
+    // 平滑缩放动画
+    smoothZoomTo(targetZoom) {
+        if (this.isZooming) return;
+        
+        this.isZooming = true;
+        
+        // 使用tween创建平滑的缩放动画
+        this.tweens.add({
+            targets: this.cameras.main,
+            zoom: targetZoom,
+            duration: 200, // 动画持续时间（毫秒）
+            ease: 'Power2', // 缓动函数
+            onComplete: () => {
+                this.isZooming = false;
+            }
+        });
     }
 
     resetLeader() {
@@ -202,12 +233,33 @@ export class GenericScene extends Phaser.Scene {
             // 设置相机跟随
             this.cameras.main.startFollow(this.leader);
             
-            // 重置相机缩放
-            this.cameraZoom = 1.0;
-            this.cameras.main.setZoom(this.cameraZoom);
+            // 重置相机缩放为0.9
+            this.cameras.main.setZoom(0.9);
         }
         
-        console.log('场景已完全重置');
+        // 清除所有警告和状态显示
+        if (this.thrustDurationText) {
+            this.thrustDurationText.visible = false;
+        }
+        if (this.cooldownText) {
+            this.cooldownText.visible = false;
+        }
+        if (this.energyStateText) {
+            this.energyStateText.setText('');
+        }
+        
+        // 确保火箭的燃油警告被清除
+        if (this.rocket && this.rocket.resetToInitialState) {
+            this.rocket.resetToInitialState();
+        }
+        
+        // 清除UI场景中的所有显示
+        const uiScene = this.scene.get('GenericUIScene');
+        if (uiScene && uiScene.clearUIDisplay) {
+            uiScene.clearUIDisplay();
+        }
+        
+        console.log('游戏已重新开始');
     }
     
     destroyAllItems() {
@@ -300,63 +352,82 @@ export class GenericScene extends Phaser.Scene {
         this.removePauseOverlay();
     }
     
-    // 回到主界面（会出问题）
+    // 回到个人准备界面
     goToMainMenu() {
-        // 启动Game场景，让Phaser自动处理场景切换
-        //this.scene.stop(this.sceneKey);
-        this.scene.start('Game', {
-                    fromScene: 'SceneEg',
+        // 启动个人准备界面场景，让Phaser自动处理场景切换
+        this.scene.start('GenericPreparationScene', {
+                    fromScene: this.sceneKey,
                     previousState: this.previousState
                 });
     }
     
     // 显示暂停覆盖层
     showPauseOverlay() {
-        // 获取相机中心位置
-        const cameraCenterX = this.cameras.main.centerX;
-        const cameraCenterY = this.cameras.main.centerY;
-        
-        // 创建半透明黑色覆盖层
-        this.pauseOverlay = this.add.rectangle(cameraCenterX, cameraCenterY, 800, 600, 0x000000, 0.5);
-        this.pauseOverlay.setDepth(1000);
-        this.pauseOverlay.setScrollFactor(0); // 不随相机移动
-        
-        // 创建暂停文字
-        this.pauseText = this.add.text(cameraCenterX, cameraCenterY - 50, '游戏暂停', {
-            fontSize: '48px',
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 4
-        });
-        this.pauseText.setOrigin(0.5);
-        this.pauseText.setDepth(1001);
-        this.pauseText.setScrollFactor(0); // 不随相机移动
-        
-        // 创建提示文字
-        this.instructionText = this.add.text(cameraCenterX, cameraCenterY + 20, '按esc继续游戏', {
-            fontSize: '20px',
-            fill: '#ffff00',
-            backgroundColor: '#00000080',
-            padding: { x: 10, y: 5 }
-        });
-        this.instructionText.setOrigin(0.5);
-        this.instructionText.setDepth(1001);
-        this.instructionText.setScrollFactor(0); // 不随相机移动
-        
-        // 创建回到主界面提示文字
-        this.mainMenuText = this.add.text(cameraCenterX, cameraCenterY + 60, '按Enter回到主界面', {
-            fontSize: '20px',
-            fill: '#ffff00',
-            backgroundColor: '#00000080',
-            padding: { x: 10, y: 5 }
-        });
-        this.mainMenuText.setOrigin(0.5);
-        this.mainMenuText.setDepth(1001);
-        this.mainMenuText.setScrollFactor(0); // 不随相机移动
+        // 获取UI场景
+        const uiScene = this.scene.get('GenericUIScene');
+        if (uiScene && uiScene.showPauseOverlay) {
+            uiScene.showPauseOverlay();
+        } else {
+            // 后备方案：如果UI场景不存在，使用当前场景
+            // 获取相机中心位置和尺寸
+            const cameraCenterX = this.cameras.main.centerX;
+            const cameraCenterY = this.cameras.main.centerY;
+            const cameraWidth = this.cameras.main.width;
+            const cameraHeight = this.cameras.main.height;
+            
+            // 创建半透明黑色覆盖层，使用相机的实际尺寸
+            this.pauseOverlay = this.add.rectangle(cameraCenterX, cameraCenterY, cameraWidth, cameraHeight, 0x000000, 0.5);
+            this.pauseOverlay.setDepth(1000);
+            this.pauseOverlay.setScrollFactor(0); // 不随相机移动
+            
+            // 创建暂停文字
+            this.pauseText = this.add.text(cameraCenterX, cameraCenterY - 50, '游戏暂停', {
+                fontSize: '48px',
+                fill: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 4,
+                fontFamily: 'Arial, sans-serif',
+                padding: { x: 10, y: 10 }
+            });
+            this.pauseText.setOrigin(0.5);
+            this.pauseText.setDepth(1001);
+            this.pauseText.setScrollFactor(0); // 不随相机移动
+            
+            // 创建提示文字
+            this.instructionText = this.add.text(cameraCenterX, cameraCenterY + 20, '按空格键继续游戏', {
+                fontSize: '20px',
+                fill: '#ffff00',
+                backgroundColor: '#00000080',
+                padding: { x: 10, y: 10 },
+                fontFamily: 'Arial, sans-serif'
+            });
+            this.instructionText.setOrigin(0.5);
+            this.instructionText.setDepth(1001);
+            this.instructionText.setScrollFactor(0); // 不随相机移动
+            
+            // 创建回到个人准备界面提示文字
+            this.mainMenuText = this.add.text(cameraCenterX, cameraCenterY + 90, '按Enter回到个人准备界面', {
+                fontSize: '20px',
+                fill: '#ffff00',
+                backgroundColor: '#00000080',
+                padding: { x: 10, y: 10 },
+                fontFamily: 'Arial, sans-serif'
+            });
+            this.mainMenuText.setOrigin(0.5);
+            this.mainMenuText.setDepth(1001);
+            this.mainMenuText.setScrollFactor(0); // 不随相机移动
+        }
     }
     
     // 移除暂停覆盖层
     removePauseOverlay() {
+        // 尝试从UI场景移除暂停覆盖层
+        const uiScene = this.scene.get('GenericUIScene');
+        if (uiScene && uiScene.removePauseOverlay) {
+            uiScene.removePauseOverlay();
+        }
+        
+        // 移除当前场景中的暂停覆盖层（后备方案）
         if (this.pauseOverlay) {
             this.pauseOverlay.destroy();
             this.pauseOverlay = null;
@@ -470,6 +541,13 @@ export class GenericUIScene extends Phaser.Scene {
         super('GenericUIScene');
         this.instructions = null;
         this.UILayer = null;
+        this.cooldownText = null;
+        this.energyStateText = null;
+        this.thrustDurationText = null;
+        this.pauseOverlay = null;
+        this.pauseText = null;
+        this.instructionText = null;
+        this.mainMenuText = null;
     }
 
     create() {
@@ -496,18 +574,221 @@ export class GenericUIScene extends Phaser.Scene {
             this.UILayer.add(textObj);   // 添加到UI层
             y += 25;
         });
+        
+        // 创建冷却时间显示
+        this.createCooldownDisplay();
+        
+        // 创建剩余加速时间显示
+        this.createThrustDurationDisplay();
+        
+        // 创建能量状态显示
+        this.createEnergyStateDisplay();
     }
 
+    // 创建冷却时间显示
+    createCooldownDisplay() {
+        // 获取屏幕宽度，用于定位到右上角
+        const screenWidth = this.cameras.main.width;
+        
+        // 创建冷却时间显示文本，固定在屏幕右上角（稍微下移）
+        this.cooldownText = this.add.text(
+            screenWidth - 20, 40, // 右上角位置，下移20px
+            '', // 初始为空
+            {
+                fontSize: '16px',
+                fill: '#ff4444', // 亮红色
+                backgroundColor: '#00000080',
+                padding: { x: 10, y: 5 }
+            }
+        );
+        this.cooldownText.setOrigin(1, 0.5); // 右对齐
+        this.cooldownText.setScrollFactor(0); // 固定位置，不随相机移动
+        this.cooldownText.setDepth(999);       // 确保在UILayer上
+        this.cooldownText.visible = false; // 初始隐藏
+        this.UILayer.add(this.cooldownText); // 添加到UI层
+    }
+    
+    // 创建剩余加速时间显示
+    createThrustDurationDisplay() {
+        // 获取屏幕宽度，用于定位到右上角
+        const screenWidth = this.cameras.main.width;
+        
+        // 创建剩余加速时间显示文本，固定在屏幕右上角，与冷却时间相同位置
+        this.thrustDurationText = this.add.text(
+            screenWidth - 20, 40, // 右上角位置，与冷却时间相同位置
+            '', // 初始为空
+            {
+                fontSize: '16px',
+                fill: '#ffff00', // 黄色
+                backgroundColor: '#00000080',
+                padding: { x: 10, y: 5 }
+            }
+        );
+        this.thrustDurationText.setOrigin(1, 0.5); // 右对齐，与冷却时间对齐
+        this.thrustDurationText.setScrollFactor(0); // 固定位置，不随相机移动
+        this.thrustDurationText.setDepth(999);       // 确保在UILayer上
+        this.thrustDurationText.visible = false; // 初始隐藏
+        this.UILayer.add(this.thrustDurationText); // 添加到UI层
+    }
+    
+    // 创建能量状态显示
+    createEnergyStateDisplay() {
+        // 获取屏幕宽度，用于定位到右上角
+        const screenWidth = this.cameras.main.width;
+        
+        // 创建能量状态显示文本，固定在屏幕右上角，冷却时间下方（相应下移）
+        this.energyStateText = this.add.text(
+            screenWidth - 20, 80, // 右上角位置，冷却时间下方
+            '', // 初始为空
+            {
+                fontSize: '16px',
+                backgroundColor: '#00000080',
+                padding: { x: 10, y: 5 }
+            }
+        );
+        this.energyStateText.setOrigin(1, 0.5); // 右对齐
+        this.energyStateText.setScrollFactor(0); // 固定位置，不随相机移动
+        this.energyStateText.setDepth(999);       // 确保在UILayer上
+        this.UILayer.add(this.energyStateText); // 添加到UI层
+    }
+    
+    // 更新冷却时间显示
+    updateCooldownDisplay(remainingSeconds, visible) {
+        if (!this.cooldownText) return;
+        
+        // 更新冷却时间显示
+        this.cooldownText.setText(`冷却: ${remainingSeconds}s`);
+        this.cooldownText.visible = visible;
+    }
+    
+    // 更新剩余加速时间显示
+    updateThrustDurationDisplay(remainingSeconds, visible) {
+        if (!this.thrustDurationText) return;
+        
+        // 更新剩余加速时间显示
+        this.thrustDurationText.setText(`加速: ${remainingSeconds}s`);
+        this.thrustDurationText.visible = visible;
+    }
+    
+    // 更新能量状态显示
+    updateEnergyStateDisplay(state) {
+        if (!this.energyStateText) return;
+        
+        // 根据状态设置不同的颜色
+        if (state === '束缚态') {
+            this.energyStateText.setStyle({ fill: '#00ff00' }); // 绿色
+        } else if (state === '散射态') {
+            this.energyStateText.setStyle({ fill: '#ffff00' }); // 黄色
+        }
+        
+        // 更新能量状态显示
+        this.energyStateText.setText(state);
+    }
+    
+    // 清除所有UI显示
+    clearUIDisplay() {
+        // 清除冷却时间显示
+        if (this.cooldownText) {
+            this.cooldownText.visible = false;
+        }
+        
+        // 清除剩余加速时间显示
+        if (this.thrustDurationText) {
+            this.thrustDurationText.visible = false;
+        }
+        
+        // 清除能量状态显示
+        if (this.energyStateText) {
+            this.energyStateText.setText('');
+        }
+        
+        // 清除暂停覆盖层
+        this.removePauseOverlay();
+    }
+    
+    // 显示暂停覆盖层
+    showPauseOverlay() {
+        // 获取相机中心位置和尺寸（使用UI场景的相机尺寸）
+        const cameraCenterX = this.cameras.main.centerX;
+        const cameraCenterY = this.cameras.main.centerY;
+        const cameraWidth = this.cameras.main.width;
+        const cameraHeight = this.cameras.main.height;
+        
+        // 创建半透明黑色覆盖层，使用相机的实际尺寸
+        this.pauseOverlay = this.add.rectangle(cameraCenterX, cameraCenterY, cameraWidth, cameraHeight, 0x000000, 0.5);
+        this.pauseOverlay.setDepth(1000);
+        this.pauseOverlay.setScrollFactor(0); // 不随相机移动
+        this.UILayer.add(this.pauseOverlay);
+        
+        // 创建暂停文字
+        this.pauseText = this.add.text(cameraCenterX, cameraCenterY - 50, '游戏暂停', {
+            fontSize: '48px',
+            fill: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 4,
+            fontFamily: 'Arial, sans-serif',
+            padding: { x: 10, y: 10 }
+        });
+        this.pauseText.setOrigin(0.5);
+        this.pauseText.setDepth(1001);
+        this.pauseText.setScrollFactor(0); // 不随相机移动
+        this.UILayer.add(this.pauseText);
+        
+        // 创建提示文字
+        this.instructionText = this.add.text(cameraCenterX, cameraCenterY + 20, '按空格键继续游戏', {
+            fontSize: '20px',
+            fill: '#ffff00',
+            backgroundColor: '#00000080',
+            padding: { x: 10, y: 10 },
+            fontFamily: 'Arial, sans-serif'
+        });
+        this.instructionText.setOrigin(0.5);
+        this.instructionText.setDepth(1001);
+        this.instructionText.setScrollFactor(0); // 不随相机移动
+        this.UILayer.add(this.instructionText);
+        
+        // 创建回到个人准备界面提示文字
+        this.mainMenuText = this.add.text(cameraCenterX, cameraCenterY + 90, '按Enter回到个人准备界面', {
+            fontSize: '20px',
+            fill: '#ffff00',
+            backgroundColor: '#00000080',
+            padding: { x: 10, y: 10 },
+            fontFamily: 'Arial, sans-serif'
+        });
+        this.mainMenuText.setOrigin(0.5);
+        this.mainMenuText.setDepth(1001);
+        this.mainMenuText.setScrollFactor(0); // 不随相机移动
+        this.UILayer.add(this.mainMenuText);
+    }
+    
+    // 移除暂停覆盖层
+    removePauseOverlay() {
+        if (this.pauseOverlay) {
+            this.pauseOverlay.destroy();
+            this.pauseOverlay = null;
+        }
+        if (this.pauseText) {
+            this.pauseText.destroy();
+            this.pauseText = null;
+        }
+        if (this.instructionText) {
+            this.instructionText.destroy();
+            this.instructionText = null;
+        }
+        if (this.mainMenuText) {
+            this.mainMenuText.destroy();
+            this.mainMenuText = null;
+        }
+    }
 
     //在继承类中调用这个接口(const instructions 里面写显示的内容)
     setUpInstructions() {
         const instructions = [
             'W/A/S/D: 控制火箭推进器',
             '空格键: 增加推力',
-            '+/-: 缩放视野',
-            '0: 重置视野',
             'R: 重置火箭位置', 
-            'ESC: 暂停'];
+            'ESC: 暂停',
+            '+/-: 缩放地图'];
         this.instructions = instructions;
     }
 }

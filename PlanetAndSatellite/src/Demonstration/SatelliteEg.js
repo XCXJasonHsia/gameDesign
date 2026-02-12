@@ -73,8 +73,8 @@ export class SatelliteEg extends GenericSatellite {
             // 确保切向向量归一化
             tangent.normalize();
             
-            // 设置初始速度
-            this.initialVelocity = tangent.scale(orbitalSpeed * 2 / 3);
+            // 设置初始速度，降低30%
+            this.initialVelocity = tangent.scale(orbitalSpeed * 2 / 3 * 1.6 * 0.7);
         } catch(error) {
             console.error('Satellite:initializeVelocity failed.');
         }

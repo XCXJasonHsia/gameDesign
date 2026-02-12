@@ -135,10 +135,8 @@ export class Game extends Phaser.Scene {
                 ease: 'Power2',
                 yoyo: true,
                 onComplete: () => {
-                    // 切换到 Adventure 场景
-                    // 注意：Adventure场景还没有创建，暂时先跳转到Game场景
-                    
-                    this.scene.start('SceneEg', {
+                    // 切换到个人准备界面
+                    this.scene.start('GenericPreparationScene', {
                     fromScene: 'Game',
                     previousState: this.previousState
                 });
