@@ -42,23 +42,36 @@ export class GenericRocket extends GenericSatellite {
         this.initializeRocketOrientation();
         
     }
+
+    setHealthBarHeight() {
+        if(this.setHealthBar === true) {
+            this.healthBarHeight = 25;
+        }
+        else {
+            super.setHealthBarHeight();
+        }
+    }
     
     createThrusterEffects(scene) {
+         // 创建容器作为所有附加元素的父级, 可以解决graphics不为Sprite的children从而无法析构这个问题
+        this.containerForNotChildrenObjects = scene.add.container();
+
         // 前向推进器火焰
         this.forwardFlame = scene.add.graphics();
         this.forwardFlame.setDepth(-1);
-        
+        this.containerForNotChildrenObjects.add(this.forwardFlame);
         // 后向推进器火焰
         this.backwardFlame = scene.add.graphics();
         this.backwardFlame.setDepth(-1);
-        
+        this.containerForNotChildrenObjects.add(this.backwardFlame);
         // 左向推进器火焰
         this.leftFlame = scene.add.graphics();
         this.leftFlame.setDepth(-1);
-        
+        this.containerForNotChildrenObjects.add(this.leftFlame);
         // 右向推进器火焰
         this.rightFlame = scene.add.graphics();
         this.rightFlame.setDepth(-1);
+        this.containerForNotChildrenObjects.add(this.rightFlame);
     }
     
     createFuelDisplay(scene) {
@@ -97,6 +110,8 @@ export class GenericRocket extends GenericSatellite {
         );
         this.fuelBar.setOrigin(0, 0.5); // 左对齐，与背景一致
         this.fuelBar.setDepth(1000);
+
+        this.containerForNotChildrenObjects.add(this.fuelText, this.fuelBar, this.fuelBarBg);
     }
     
     // 创建冷却时间显示
@@ -191,7 +206,6 @@ export class GenericRocket extends GenericSatellite {
         
         // 更新能量状态显示
         this.updateEnergyStateDisplay();
-        
     }
 
     updateControls() {
@@ -769,30 +783,12 @@ export class GenericRocket extends GenericSatellite {
             this.rotation = angle;
         }
     }
-    /*
-    destroy() {
-        // 清理火焰效果
-        if (this.forwardFlame) {
-            this.forwardFlame.clear();
-            this.forwardFlame.destroy();
-            this.forwardFlame = null;
+    
+    destroy(fromScene) {
+        if (this.container) {
+            this.container.destroy();
+            this.container = null;
         }
-        if (this.backwardFlame) {
-            this.backwardFlame.clear();
-            this.backwardFlame.destroy();
-            this.backwardFlame = null;
-        }
-        if (this.leftFlame) {
-            this.leftFlame.clear();
-            this.leftFlame.destroy();
-            this.leftFlame = null;
-        }
-        if (this.rightFlame) {
-            this.rightFlame.clear();
-            this.rightFlame.destroy();
-            this.rightFlame = null;
-        }
-        
         // 清理燃料显示
         if (this.fuelBarBg) {
             this.fuelBarBg.destroy();
@@ -811,7 +807,7 @@ export class GenericRocket extends GenericSatellite {
         this.controlKeys = null;
         
         // 调用父类的destroy方法
-        super.destroy();
+        super.destroy(fromScene);
     }
-    */
+    
 }

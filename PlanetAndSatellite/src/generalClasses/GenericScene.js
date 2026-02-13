@@ -10,25 +10,13 @@ export class GenericScene extends Phaser.Scene {
         super(sceneKey);
         this.sceneKey = sceneKey;
         
+        this.leader_str = leader_str;
+
         // 是否跟随
         this.cameraFollow = cameraFollow;
         //to change power or not
         this.powerManipulation = powerManipulation;
-        
-        // Scene基类中，设置了一组planets，一组satellites和一个Rocket
-        this.planets = [];
-        this.satellites = [];
-        this.leader = null;
-        this.leader_str = leader_str;
-        this.gravitySystem = null;
-
-        // initial positions should be arrays of 2Dvectors
-        this.initialPlanetPositions = [];
-        this.initialSatellitePositions = [];
-        this.initialRocketPosition = null;
-
-
-        
+         
         // 相机跟随平滑度
         this.cameraSmoothness = 0.1;
 
@@ -37,6 +25,31 @@ export class GenericScene extends Phaser.Scene {
 
         this.previousState = {};
     }
+    // 我设置了init用于处理场景切换时重置
+    init(data) {
+        // 判断是否暂停的bool型
+        this.isPaused = false;
+
+        // Scene基类中，设置了一组planets，一组satellites和一个Rocket
+        this.planets = [];
+        this.satellites = [];
+        this.leader = null;
+        
+        this.gravitySystem = null;
+
+        // initial positions should be arrays of 2Dvectors
+        this.initialPlanetPositions = [];
+        this.initialSatellitePositions = [];
+        this.initialRocketPosition = null;
+        
+        // 创建说明文本
+        this.scene.launch('GenericUIScene');
+        this.scene.bringToTop('GenericUIScene');
+
+        // 设置键盘控制
+        this.setupKeyboardControls();
+    }
+
     create() {
         
         // 默认只有一个行星，双星系统还没开发，之后再写
@@ -85,14 +98,7 @@ export class GenericScene extends Phaser.Scene {
         
             
         }
-        
-        // 设置键盘控制
-        this.setupKeyboardControls();
-        
-        // 创建说明文本
-        this.scene.launch('GenericUIScene');
-        this.scene.bringToTop('GenericUIScene');
-        
+          
     }
 
     // 这几个方法需要在继承类中实现！（初始化）
@@ -108,11 +114,11 @@ export class GenericScene extends Phaser.Scene {
         // 获取键盘输入
         const keys = this.input.keyboard.addKeys({
             r: Phaser.Input.Keyboard.KeyCodes.R,            // 重置leader位置
-            pause: Phaser.Input.Keyboard.KeyCodes.SPACE       // 按空格键实现暂停
+            pause: Phaser.Input.Keyboard.KeyCodes.ESC       // 按空格键实现暂停
         });
         
         this.input.keyboard.on('keydown-R', () => this.resetLeader());
-        this.input.keyboard.on('keydown-SPACE', () => this.gamePause());
+        this.input.keyboard.on('keydown-ESC', () => this.gamePause());
         
         // 设置缩放控制
         this.setupZoomControls();
@@ -354,8 +360,9 @@ export class GenericScene extends Phaser.Scene {
     
     // 回到个人准备界面
     goToMainMenu() {
+        this.removePauseOverlay();
         // 启动个人准备界面场景，让Phaser自动处理场景切换
-        this.scene.start('GenericPreparationScene', {
+        this.scene.start('Game', {
                     fromScene: this.sceneKey,
                     previousState: this.previousState
                 });
@@ -394,7 +401,7 @@ export class GenericScene extends Phaser.Scene {
             this.pauseText.setScrollFactor(0); // 不随相机移动
             
             // 创建提示文字
-            this.instructionText = this.add.text(cameraCenterX, cameraCenterY + 20, '按空格键继续游戏', {
+            this.instructionText = this.add.text(cameraCenterX, cameraCenterY + 20, '按ESC继续游戏', {
                 fontSize: '20px',
                 fill: '#ffff00',
                 backgroundColor: '#00000080',
@@ -700,84 +707,6 @@ export class GenericUIScene extends Phaser.Scene {
         // 清除能量状态显示
         if (this.energyStateText) {
             this.energyStateText.setText('');
-        }
-        
-        // 清除暂停覆盖层
-        this.removePauseOverlay();
-    }
-    
-    // 显示暂停覆盖层
-    showPauseOverlay() {
-        // 获取相机中心位置和尺寸（使用UI场景的相机尺寸）
-        const cameraCenterX = this.cameras.main.centerX;
-        const cameraCenterY = this.cameras.main.centerY;
-        const cameraWidth = this.cameras.main.width;
-        const cameraHeight = this.cameras.main.height;
-        
-        // 创建半透明黑色覆盖层，使用相机的实际尺寸
-        this.pauseOverlay = this.add.rectangle(cameraCenterX, cameraCenterY, cameraWidth, cameraHeight, 0x000000, 0.5);
-        this.pauseOverlay.setDepth(1000);
-        this.pauseOverlay.setScrollFactor(0); // 不随相机移动
-        this.UILayer.add(this.pauseOverlay);
-        
-        // 创建暂停文字
-        this.pauseText = this.add.text(cameraCenterX, cameraCenterY - 50, '游戏暂停', {
-            fontSize: '48px',
-            fill: '#ffffff',
-            stroke: '#000000',
-            strokeThickness: 4,
-            fontFamily: 'Arial, sans-serif',
-            padding: { x: 10, y: 10 }
-        });
-        this.pauseText.setOrigin(0.5);
-        this.pauseText.setDepth(1001);
-        this.pauseText.setScrollFactor(0); // 不随相机移动
-        this.UILayer.add(this.pauseText);
-        
-        // 创建提示文字
-        this.instructionText = this.add.text(cameraCenterX, cameraCenterY + 20, '按空格键继续游戏', {
-            fontSize: '20px',
-            fill: '#ffff00',
-            backgroundColor: '#00000080',
-            padding: { x: 10, y: 10 },
-            fontFamily: 'Arial, sans-serif'
-        });
-        this.instructionText.setOrigin(0.5);
-        this.instructionText.setDepth(1001);
-        this.instructionText.setScrollFactor(0); // 不随相机移动
-        this.UILayer.add(this.instructionText);
-        
-        // 创建回到个人准备界面提示文字
-        this.mainMenuText = this.add.text(cameraCenterX, cameraCenterY + 90, '按Enter回到个人准备界面', {
-            fontSize: '20px',
-            fill: '#ffff00',
-            backgroundColor: '#00000080',
-            padding: { x: 10, y: 10 },
-            fontFamily: 'Arial, sans-serif'
-        });
-        this.mainMenuText.setOrigin(0.5);
-        this.mainMenuText.setDepth(1001);
-        this.mainMenuText.setScrollFactor(0); // 不随相机移动
-        this.UILayer.add(this.mainMenuText);
-    }
-    
-    // 移除暂停覆盖层
-    removePauseOverlay() {
-        if (this.pauseOverlay) {
-            this.pauseOverlay.destroy();
-            this.pauseOverlay = null;
-        }
-        if (this.pauseText) {
-            this.pauseText.destroy();
-            this.pauseText = null;
-        }
-        if (this.instructionText) {
-            this.instructionText.destroy();
-            this.instructionText = null;
-        }
-        if (this.mainMenuText) {
-            this.mainMenuText.destroy();
-            this.mainMenuText = null;
         }
     }
 

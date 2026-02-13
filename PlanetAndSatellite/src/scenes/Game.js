@@ -136,7 +136,7 @@ export class Game extends Phaser.Scene {
                 yoyo: true,
                 onComplete: () => {
                     // 切换到个人准备界面
-                    this.scene.start('GenericPreparationScene', {
+                    this.scene.start('PreparationSceneEg', {
                     fromScene: 'Game',
                     previousState: this.previousState
                 });

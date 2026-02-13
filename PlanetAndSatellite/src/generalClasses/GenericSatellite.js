@@ -57,11 +57,25 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         // 卫星属性
         this.setHealthBar = setHealthBar;
         this.mass = 10; // 卫星质量
-        this.collisionDamageMultiplier = 0.005 // 伤害系数
+        this.collisionDamageMultiplier = 0.005; // 伤害系数
+
+        // 血量系统
+        this.maxHealth = 100; // 最大血量
+        this.health = this.maxHealth; // 当前血量
+        this.healthBarHeight = null;
+        this.setHealthBarHeight(); // 血条与卫星的竖直方向高度差
+        // 当setHealthBar为true时创建血条
+        if (this.setHealthBar) {
+            this.createHealthBar(scene);
+        }
 
         // 碰撞后重置的计时器
         this.resetTimer = null;
         this.resetDelay = 1000; // 1秒后重置
+    }
+
+    setHealthBarHeight() {
+        this.healthBarHeight = 25;
     }
 
     initializeVelocityForVerlet() {
@@ -82,6 +96,146 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
     }
 
     initializeVelocity() {};
+
+    // 创建血条
+    createHealthBar(scene) {
+        // 血量文本
+        const healthPercent = Math.floor((this.health / this.maxHealth) * 100);
+        this.healthText = scene.add.text(
+            this.x - 25, this.y - this.displayHeight/2 - this.healthBarHeight, // 初始位置，向左移动25px，使用healthBarHeight控制高度差
+            `血量: ${healthPercent}%`,
+            {
+                fontSize: '9.18px', // 缩小15%
+                fill: '#ffffff',
+                backgroundColor: '#00000080',
+                padding: { x: 2.3, y: 1.5 } // 相应缩小15%
+            }
+        );
+        this.healthText.setOrigin(0, 0.5); // 左对齐
+        this.healthText.setDepth(1000);
+        
+        // 获取文字宽度，使血条与之等长
+        const textWidth = this.healthText.width;
+        
+        // 血条背景（红色，表示已消耗的部分）
+        this.healthBarBg = scene.add.rectangle(
+            this.x - 25, this.y - this.displayHeight/2 - this.healthBarHeight + 9, // 向左移动25px，使用healthBarHeight控制高度差
+            textWidth, 6.12, // 与文字等长，高度缩小15%
+            0xff0000 // 红色背景
+        );
+        this.healthBarBg.setOrigin(0, 0.5); // 左对齐
+        this.healthBarBg.setDepth(1000);
+        
+        // 血条前景
+        this.healthBar = scene.add.rectangle(
+            this.x - 25, this.y - this.displayHeight/2 - this.healthBarHeight + 9, // 向左移动25px，使用healthBarHeight控制高度差
+            textWidth, 6.12, // 与文字等长，高度缩小15%
+            0x00ff00
+        );
+        this.healthBar.setOrigin(0, 0.5); // 左对齐，与背景一致
+        this.healthBar.setDepth(1000);
+    }
+
+    // 更新血条
+    updateHealthBar() {
+        if (!this.setHealthBar) return;
+        
+        // 更新血条和文本位置，使其始终位于卫星正上方
+        const healthTextY = this.y - this.displayHeight/2 - this.healthBarHeight;
+        const healthBarY = this.y - this.displayHeight/2 - this.healthBarHeight + 9;
+        const healthX = this.x - 25; // 向左移动25px
+        
+        if (this.healthText) {
+            this.healthText.setPosition(healthX, healthTextY);
+            this.healthText.setOrigin(0, 0.5); // 左对齐
+            const healthPercent = Math.floor((this.health / this.maxHealth) * 100);
+            this.healthText.setText(`血量: ${healthPercent}%`);
+        }
+        
+        // 获取文字宽度，使血条与之等长
+        const textWidth = this.healthText ? this.healthText.width : 60;
+        
+        if (this.healthBarBg) {
+            this.healthBarBg.setPosition(healthX, healthBarY);
+            this.healthBarBg.setOrigin(0, 0.5); // 左对齐
+            this.healthBarBg.width = textWidth; // 与文字等长
+        }
+        
+        if (this.healthBar) {
+            // 保持血条前景的原点为左侧，与背景一致
+            this.healthBar.setOrigin(0, 0.5);
+            this.healthBar.setPosition(healthX, healthBarY);
+            
+            const healthPercent = this.health / this.maxHealth;
+            // 计算血条宽度，从左侧开始向右扩展
+            this.healthBar.width = textWidth * healthPercent;
+            
+            // 根据血量改变颜色
+            if (healthPercent > 0.5) {
+                this.healthBar.fillColor = 0x00ff00; // 绿色
+            } else if (healthPercent > 0.2) {
+                this.healthBar.fillColor = 0xffff00; // 黄色
+            } else {
+                this.healthBar.fillColor = 0xff0000; // 红色
+            }
+        }
+
+        // 血量为0时复用重置逻辑
+        if(this.health === 0) {
+            isattached = true;
+        }
+    }
+
+    // 受到伤害
+    takeDamage(damage) {
+        if (!this.setHealthBar) return;
+        
+        this.health -= damage;
+        
+        // 确保血量不为负
+        if (this.health < 0) {
+            this.health = 0;
+        }
+        
+        // 更新血条
+        this.updateHealthBar();
+        
+        // 如果血量为0，重置卫星
+        if (this.health <= 0) {
+            this.resetToInitialState();
+        }
+        
+        // 添加伤害数字显示
+        this.showDamageNumber(damage);
+    }
+
+    // 显示伤害数字
+    showDamageNumber(damage) {
+        const damageText = this.scene.add.text(
+            this.x + Phaser.Math.Between(-20, 20),
+            this.y - this.displayWidth / 2 - 30,
+            `-${damage.toFixed(1)}`,
+            {
+                fontSize: '12px',
+                fill: '#ff0000',
+                stroke: '#000000',
+                strokeThickness: 2
+            }
+        );
+        damageText.setOrigin(0.5, 0.5);
+        
+        // 伤害数字动画：向上飘动并淡出
+        this.scene.tweens.add({
+            targets: damageText,
+            y: damageText.y - 30,
+            alpha: 0,
+            duration: 1000,
+            ease: 'Power2',
+            onComplete: () => {
+                damageText.destroy();
+            }
+        });
+    }
 
     // show the trail of the satellite
     createTrailGraphics(scene) {
@@ -136,6 +290,11 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         
         // 更新轨迹
         this.updateTrail();
+        
+        // 更新血条
+        if (this.setHealthBar) {
+            this.updateHealthBar();
+        }
     }
     
     // 检查是否与其他卫星碰撞
@@ -196,7 +355,10 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         // 计算伤害：伤害与动量成正比
         const damage = momentum * this.collisionDamageMultiplier;
         
-        // 对另一个卫星造成伤害（卫星血条仍未开发）
+        // 对两个卫星都造成伤害
+        if (this.setHealthBar === true && this.takeDamage) {
+            this.takeDamage(damage);
+        }
         if (otherSatellite.setHealthBar === true && otherSatellite.takeDamage) {
             otherSatellite.takeDamage(damage);
         }
@@ -327,6 +489,12 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
             this.trailGraphics.clear();
         }
         
+        // 重置血量到最大值
+        if (this.setHealthBar) {
+            this.health = this.maxHealth;
+            this.updateHealthBar();
+        }
+        
         // 重置时间跟踪
         this.lastUpdateTime = 0;
         
@@ -335,7 +503,32 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         this.y = this.position.y;
         this.body.position.set(this.position.x, this.position.y);
         
+        // 重置所有设置了setHealthBar的planet、satellite或rocket的血量为最大
+        if (this.targetPlanets) {
+            this.targetPlanets.forEach(planet => {
+                if (planet.setHealthBar && planet.maxHealth) {
+                    planet.health = planet.maxHealth;
+                    if (planet.updateHealthBarPosition) {
+                        planet.updateHealthBarPosition();
+                    }
+                }
+            });
+        }
+        
+        if (this.gravitySystem && this.gravitySystem.satellites) {
+            this.gravitySystem.satellites.forEach(satellite => {
+                if (satellite.setHealthBar && satellite.maxHealth) {
+                    satellite.health = satellite.maxHealth;
+                    if (satellite.updateHealthBar) {
+                        satellite.updateHealthBar();
+                    }
+                }
+            });
+        }
+        
         console.log('卫星已重置到初始状态');
+        console.log('所有设置了setHealthBar的天体血量已重置为最大值');
+
     }
 
     // 检查是否与行星碰撞

@@ -1,8 +1,6 @@
-import { GenericScene } from '../generalClasses/GenericScene.js';
-
 export class GenericPreparationScene extends Phaser.Scene {
-    constructor() {
-        super('GenericPreparationScene');
+    constructor(sceneKey) {
+        super(sceneKey);
     }
     
     create() {
@@ -38,7 +36,7 @@ export class GenericPreparationScene extends Phaser.Scene {
         // 按钮点击事件
         startButton.on('pointerdown', () => {
             // 跳转到冒险模式（SceneEg）
-            this.scene.start('SceneEg');
+            this.scene.start('SceneEg', {});
         });
         
         // 按钮悬停效果
