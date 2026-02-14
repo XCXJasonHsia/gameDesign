@@ -12,7 +12,7 @@ a collaborative project with jsm & wzx
 
 
 
-接下来，需要写四个类，分别继承自GenericPlanet，GenericSatellite， GenericRocket， GenericScene。**我写了一个Demonstration文件来展示继承的时候每个类必须要写的基础功能（否则这个类没法用）。这几个基类实现了一些基础功能（如行星绕转，血条机制，火箭发动机，碰撞检测，游戏重置）**，其他功能需要在继承这些基类的基础上进行重写。
+接下来，需要写五个类，分别继承自GenericPlanet，GenericSatellite， GenericRocket， GenericScene， GenericPreparationScene。**我写了一个Demonstration文件来展示继承的时候每个类必须要写的基础功能（否则这个类没法用）。这几个基类实现了一些基础功能（如行星绕转，血条机制，火箭发动机，碰撞检测，游戏重置）**，其他功能需要在继承这些基类的基础上进行重写。
 
 
 
@@ -32,15 +32,15 @@ a collaborative project with jsm & wzx
 
 
 
-###### **GenericSatellite的构造函数的参数有：scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem**
+###### **GenericSatellite的构造函数的参数有：scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart**
 
-&nbsp;	注意：Satellite类的healthBar功能还没开发，无法设置血条（sorry我之后尽快弄）。targetPlanets指会给予Satellite引力作用的Planet列表，其他参数的含义与	上文类似。gravitySystem是用于更新引力参数的（用	于应对引力参数会变化的情况）。一般情况下对于这些参数照抄就可以了（可以参考SatelliteEg的	constructor）
+&nbsp;	targetPlanets指会给予Satellite引力作用的Planet列表，其他参数的含义与上文类似。gravitySystem是用于更新引力参数的（用	于应对引力参数会变化的情况）。一般情况下对于这些参数照抄就可以了（可以参考SatelliteEg的	constructor），setRestart === true即意味着需要按R键手动重启
 
 &nbsp;	**需要写initializeVelocity这个函数！很重要！否则开始时卫星将没有速度。**initializeVelocity函数的目的是给this.initialVelocity赋值，最简单的方法是在SatelliteEg	中第80行注释掉的直接赋值的语句。在SatelliteEg中用的initializeVelocity保证satellite可以近似稳定地运动
 
 
 
-###### **GenericRocket的构造函数参数是：scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, infiniteFuel**
+###### **GenericRocket的构造函数参数是：scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart， infiniteFuel**
 
 	genericRocket继承自GenericSatellite，多加了引擎机制，可以沿着法线和切线方向加速减速，并可选择是否有“无限油量”——通过infiniteFuel这个参数	（bool）型，选择了	infiniteFuel === true之后	不会显示油量条，油量不消耗。
 
@@ -48,7 +48,7 @@ a collaborative project with jsm & wzx
 
 
 
-&nbsp;	Note：现在汽油条显示和更新的逻辑有问题，留待之后解决
+&nbsp;	Note：现在汽油条显示和更新的逻辑有问题，留待之后解决（这个问题已经解决）
 
 
 
@@ -71,10 +71,16 @@ a collaborative project with jsm & wzx
 &nbsp;	2.把new好的类（不能是基类！必须是继承类）push进那个空this.satellites数组中
 
 
+###### **GenericPreparationScene的构造函数参数是：sceneKey, sceneKeyGame**
+&nbsp;	sceneKeyGame是preparationScene对应的那个主游戏场景的key
+
+
+
 
 &nbsp;	Note：
 
 &nbsp;		1.backGround会1覆盖部分UI显示，这个问题还要调整
+			(这个问题已经解决)
 
 &nbsp;		2.现在GravitySystem的滑动条显示不出来，不知道怎么搞的，**但烦请大家尽量不要改GravitySystem，因为我的GenericSatellite和这个类联系紧密可能会	崩：(**
 
@@ -93,6 +99,9 @@ a collaborative project with jsm & wzx
 **我把Game.js作为一开始的菜单页面，大家要调试的话把Game.js第136行this.scene.start('SceneEg');里面的key改成自己的Scene的key即可**
 
 
+
+2、13
+新增加的功能：血量都已经设置好了，为之后宇宙回程碰撞rocket之类的场景做好准备
 
 
 

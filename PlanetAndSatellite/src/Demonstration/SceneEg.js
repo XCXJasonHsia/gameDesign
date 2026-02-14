@@ -1,11 +1,11 @@
 import { PlanetEg } from '../Demonstration/PlanetEg.js';
-import { GenericScene } from '../generalClasses/GenericScene.js';
+import { GenericScene, GenericUIScene } from '../generalClasses/GenericScene.js';
 import { SatelliteEg } from '../Demonstration/SatelliteEg.js';
 import { RocketEg } from '../Demonstration/RocketEg.js';
 
 export class SceneEg extends GenericScene {
     constructor() {
-        super('SceneEg', true, 'rocket', false);
+        super('SceneEg', true, 'rocket', false, 'UISceneEg');
     }
     
 
@@ -39,7 +39,7 @@ export class SceneEg extends GenericScene {
             this.initialSatellitePositions.push({x: this.initialPlanetPositions[0].x + distanceFromCenter, 
                                                 y: this.initialPlanetPositions[0].y});
             this.satellites.push(new SatelliteEg(this, this.initialSatellitePositions[0].x, this.initialSatellitePositions[0].y, 
-                'star', this.planets, true, 15, this.gravitySystem));
+                'star', this.planets, true, 15, this.gravitySystem, true));
         }
     }
 
@@ -59,7 +59,13 @@ export class SceneEg extends GenericScene {
             this.initialRocketPosition = {x: this.initialPlanetPositions[0].x, 
                                                 y: this.initialPlanetPositions[0].y - distanceFromCenter};
             this.rocket = new RocketEg(this, this.initialRocketPosition.x, 
-                this.initialRocketPosition.y, 'cartoon_rocket', this.planets, true, 30, this.gravitySystem, false);
+                this.initialRocketPosition.y, 'cartoon_rocket', this.planets, true, 30, this.gravitySystem, true, false);
         }
+    }
+}
+
+export class UISceneEg extends GenericUIScene {
+    constructor() {
+        super('UISceneEg');
     }
 }

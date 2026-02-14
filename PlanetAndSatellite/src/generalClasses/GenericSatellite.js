@@ -1,5 +1,5 @@
 export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
-    constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem) {
+    constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart) {
         super(scene, x, y, texture);
 
         scene.add.existing(this);
@@ -70,6 +70,7 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         }
 
         // 碰撞后重置的计时器
+        this.setRestart = setRestart;
         this.resetTimer = null;
         this.resetDelay = 1000; // 1秒后重置
     }
@@ -440,8 +441,8 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         this.updateAttachedPosition();
         }
         
-        // 检查重置计时器
-        if (this.resetTimer && time >= this.resetTimer) {
+        // 检查重置计时器，只有当setRestart为false时才重置
+        if (!this.setRestart && this.resetTimer && time >= this.resetTimer) {
             this.resetToInitialState();
         }
     }
@@ -778,6 +779,18 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         if (this.trailGraphics) {
             this.trailGraphics.destroy();
         }
+        
+        // 清理血条相关元素
+        if (this.healthBarBg) {
+            this.healthBarBg.destroy();
+        }
+        if (this.healthBar) {
+            this.healthBar.destroy();
+        }
+        if (this.healthText) {
+            this.healthText.destroy();
+        }
+        
         super.destroy();
     }
 }

@@ -86,7 +86,7 @@ export class Game extends Phaser.Scene {
         });
         
         // 创建 Adventure 按钮
-        const adventureButton = this.add.text(400, 400, 'SceneEg', {
+        const adventureButton = this.add.text(400, 400, 'SceneEarth', {
             fontSize: '32px',
             fill: '#ffffff',
             backgroundColor: '#333333',
@@ -136,7 +136,7 @@ export class Game extends Phaser.Scene {
                 yoyo: true,
                 onComplete: () => {
                     // 切换到个人准备界面
-                    this.scene.start('PreparationSceneEg', {
+                    this.scene.start('PreparationScene11', {
                     fromScene: 'Game',
                     previousState: this.previousState
                 });

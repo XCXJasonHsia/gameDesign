@@ -29,6 +29,11 @@ export class Preloader extends Phaser.Scene {
         this.load.image('star', 'star.png');
         this.load.image('cartoon_moon', 'cartoon_moon.png');
         this.load.image('cartoon_rocket', 'cartoon_rocket.png');
+        this.load.image('cartoon_earth', 'cartoon_earth.png');
+        this.load.image('scene1earth', 'EarthSceneAssets/scene1earth.png');
+        this.load.image('scene1moon', 'EarthSceneAssets/scene1moon.png');
+        this.load.image('scene1rocket', 'EarthSceneAssets/scene1rocket.png');
+        this.load.image('scene1meatpie', 'EarthSceneAssets/scene1meatpie.png');
     }
 
     create() {

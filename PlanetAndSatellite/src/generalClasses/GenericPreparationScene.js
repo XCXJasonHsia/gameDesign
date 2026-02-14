@@ -1,6 +1,7 @@
 export class GenericPreparationScene extends Phaser.Scene {
-    constructor(sceneKey) {
+    constructor(sceneKey, sceneKeyGame) {
         super(sceneKey);
+        this.sceneKeyGame = sceneKeyGame;
     }
     
     create() {
@@ -22,6 +23,15 @@ export class GenericPreparationScene extends Phaser.Scene {
             padding: { x: 10, y: 10 }
         });
         title.setOrigin(0.5);
+
+        const helpText = this.add.text(centerX, centerY - 40, '按h查看提示', {
+            fontSize: '36px',
+            fill: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 2,
+            padding: { x: 10, y: 10 }
+        });
+        helpText.setOrigin(0.5);
         
         // 创建"开始冒险"按钮
         const startButton = this.add.text(centerX, centerY + 100, '开始冒险', {
@@ -35,8 +45,8 @@ export class GenericPreparationScene extends Phaser.Scene {
         
         // 按钮点击事件
         startButton.on('pointerdown', () => {
-            // 跳转到冒险模式（SceneEg）
-            this.scene.start('SceneEg', {});
+            // 跳转到对应场景
+            this.scene.start(this.sceneKeyGame, {});
         });
         
         // 按钮悬停效果

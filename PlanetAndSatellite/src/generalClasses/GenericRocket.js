@@ -1,8 +1,8 @@
 import { GenericSatellite } from './GenericSatellite.js'
 
 export class GenericRocket extends GenericSatellite {
-    constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, infiniteFuel) {
-        super(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem);
+    constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart, infiniteFuel) {
+        super(scene, x, y, texture, targetPlanets, setHealthBar, radius, gravitySystem, setRestart);
         
         // Rocket特有属性
         this.thrustPower = 1000000000; // 推进器推力
@@ -233,6 +233,19 @@ export class GenericRocket extends GenericSatellite {
         
         // 开始喷气或持续喷气
         if (canThrust && isAnyThrustKeyDown) {
+            // 无论是否刚开始喷气，都先更新推进器状态
+            this.isThrustingForward = this.controlKeys.up.isDown;
+            this.isThrustingBackward = this.controlKeys.down.isDown;
+            this.isThrustingLeft = this.controlKeys.left.isDown;
+            this.isThrustingRight = this.controlKeys.right.isDown;
+            
+            // 空格键：增加推力
+            if (this.controlKeys.space.isDown) {
+                this.thrustPower = this.boostThrustPower;
+            } else {
+                this.thrustPower = this.baseThrustPower;
+            }
+            
             // 如果是刚开始喷气，记录开始时间
             if (!this.isThrusting) {
                 this.isThrusting = true;
@@ -250,20 +263,6 @@ export class GenericRocket extends GenericSatellite {
                 this.disableThrusters();
                 this.lastThrustEndTime = currentTime;
                 this.thrustDurationRemaining = 0;
-            } else {
-                // 持续喷气
-                // 更新推进器状态
-                this.isThrustingForward = this.controlKeys.up.isDown;
-                this.isThrustingBackward = this.controlKeys.down.isDown;
-                this.isThrustingLeft = this.controlKeys.left.isDown;
-                this.isThrustingRight = this.controlKeys.right.isDown;
-                
-                // 空格键：增加推力
-                if (this.controlKeys.space.isDown) {
-                    this.thrustPower = this.boostThrustPower;
-                } else {
-                    this.thrustPower = this.baseThrustPower;
-                }
             }
             
         }
@@ -489,7 +488,7 @@ export class GenericRocket extends GenericSatellite {
             scene.UILayer.add(this.fuelWarningText);
         } else {
             // 如果没有UILayer，尝试添加到UI场景
-            const uiScene = scene.scene.get('GenericUIScene');
+            const uiScene = scene.scene.get(scene.sceneKeyUI);
             if (uiScene && uiScene.add) {
                 // 重新创建文本并添加到UI场景
                 this.fuelWarningText.destroy();
@@ -565,7 +564,7 @@ export class GenericRocket extends GenericSatellite {
         }
         
         // 使用UI场景更新冷却时间显示
-        const uiScene = this.scene.scene.get('GenericUIScene');
+        const uiScene = this.scene.scene.get(this.scene.sceneKeyUI);
         if (uiScene && uiScene.updateCooldownDisplay) {
             uiScene.updateCooldownDisplay(remainingSeconds, remainingCooldown > 0);
         }
@@ -577,7 +576,7 @@ export class GenericRocket extends GenericSatellite {
         const remainingSeconds = (this.thrustDurationRemaining / 1000).toFixed(1);
         
         // 使用UI场景更新剩余加速时间显示
-        const uiScene = this.scene.scene.get('GenericUIScene');
+        const uiScene = this.scene.scene.get(this.scene.sceneKeyUI);
         if (uiScene && uiScene.updateThrustDurationDisplay) {
             uiScene.updateThrustDurationDisplay(remainingSeconds, this.isThrusting && this.thrustDurationRemaining > 0);
         }
@@ -620,7 +619,7 @@ export class GenericRocket extends GenericSatellite {
         }
         
         // 使用UI场景更新能量状态显示
-        const uiScene = this.scene.scene.get('GenericUIScene');
+        const uiScene = this.scene.scene.get(this.scene.sceneKeyUI);
         if (uiScene && uiScene.updateEnergyStateDisplay) {
             uiScene.updateEnergyStateDisplay(this.energyState);
         }

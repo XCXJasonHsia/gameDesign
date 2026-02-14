@@ -5,8 +5,9 @@ import { Preloader } from './scenes/Preloader.js';
 import { Adventure } from './scenes/Adventure.js';
 import { Battle } from './scenes/Battle.js';
 import { PreparationSceneEg } from './Demonstration/PreparationSceneEg.js';
-import { GenericScene, GenericUIScene } from './generalClasses/GenericScene.js';
-import { SceneEg } from './Demonstration/SceneEg.js';
+import { SceneEg, UISceneEg } from './Demonstration/SceneEg.js';
+import { PreparationScene11 } from './scenes/AdventureScenes/EarthScene/PreparationScene11.js';
+import { SceneEarth, UISceneEarth } from './scenes/AdventureScenes/EarthScene/SceneEarth.js';
 const config = {
     type: Phaser.AUTO,
     width: 800,
@@ -32,8 +33,9 @@ const config = {
         Adventure, 
         Battle, 
         PreparationSceneEg,
-        GenericUIScene,
-        SceneEg
+        SceneEg, UISceneEg,
+        PreparationScene11,  
+        SceneEarth, UISceneEarth
     ]
 };
 

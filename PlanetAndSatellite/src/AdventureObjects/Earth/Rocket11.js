@@ -1,10 +1,10 @@
-import {GenericSatellite} from '../generalClasses/GenericSatellite.js';
+import { GenericRocket } from '../../generalClasses/GenericRocket.js';
 
-export class SatelliteEg extends GenericSatellite {
-    constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart) {
-        super(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart);
+export class Rocket11 extends GenericRocket {
+    constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart, infiniteFuel) {
+        super(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart, infiniteFuel);
     }
-    
+
     initializeVelocity() {
         // 选择第一个目标行星作为轨道中心
         this.targetPlanet = this.targetPlanets[0];
@@ -73,17 +73,11 @@ export class SatelliteEg extends GenericSatellite {
             // 确保切向向量归一化
             tangent.normalize();
             
-            // 设置初始速度，降低30%
-            this.initialVelocity = tangent.scale(orbitalSpeed * 2 / 3 * 1.6 * 0.7);
+            // 设置初始速度
+            this.initialVelocity = tangent.scale(orbitalSpeed * 2 / 3);
         } catch(error) {
             console.error('Satellite:initializeVelocity failed.');
         }
         
     }
-    /*
-    initializeVelocity() {
-         // 给一个初始切向速度
-        this.initialVelocity = new Phaser.Math.Vector2(0, 30);
-    }
-    */
 }

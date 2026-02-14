@@ -1,8 +1,8 @@
 import { GenericRocket } from '../generalClasses/GenericRocket.js';
 
 export class RocketEg extends GenericRocket {
-    constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, infiniteFuel) {
-        super(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, infiniteFuel);
+    constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart, infiniteFuel) {
+        super(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart, infiniteFuel);
     }
 
     initializeVelocity() {

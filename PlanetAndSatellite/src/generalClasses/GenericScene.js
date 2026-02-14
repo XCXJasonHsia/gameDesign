@@ -3,12 +3,13 @@ import { GenericRocket } from './GenericRocket.js';
 import { GenericSatellite } from './GenericSatellite.js';
 import { GravitySystem } from '../Engines/GravitySystem.js';
 export class GenericScene extends Phaser.Scene {
-    constructor(sceneKey, cameraFollow, leader_str, powerManipulation) {
-        if (!sceneKey) {
-          throw new Error('必须提供sceneKey参数');
+    constructor(sceneKey, cameraFollow, leader_str, powerManipulation, sceneKeyUI) {
+        if (!sceneKey || !sceneKeyUI) {
+          throw new Error('必须提供sceneKey和SceneKeyUI参数');
         }
         super(sceneKey);
         this.sceneKey = sceneKey;
+        this.sceneKeyUI = sceneKeyUI;
         
         this.leader_str = leader_str;
 
@@ -43,8 +44,8 @@ export class GenericScene extends Phaser.Scene {
         this.initialRocketPosition = null;
         
         // 创建说明文本
-        this.scene.launch('GenericUIScene');
-        this.scene.bringToTop('GenericUIScene');
+        this.scene.launch(this.sceneKeyUI);
+        this.scene.bringToTop(this.sceneKeyUI);
 
         // 设置键盘控制
         this.setupKeyboardControls();
@@ -114,14 +115,24 @@ export class GenericScene extends Phaser.Scene {
         // 获取键盘输入
         const keys = this.input.keyboard.addKeys({
             r: Phaser.Input.Keyboard.KeyCodes.R,            // 重置leader位置
-            pause: Phaser.Input.Keyboard.KeyCodes.ESC       // 按空格键实现暂停
+            pause: Phaser.Input.Keyboard.KeyCodes.ESC,       // 按空格键实现暂停
+            h: Phaser.Input.Keyboard.KeyCodes.H             // 显示/隐藏说明文本
         });
         
         this.input.keyboard.on('keydown-R', () => this.resetLeader());
         this.input.keyboard.on('keydown-ESC', () => this.gamePause());
+        this.input.keyboard.on('keydown-H', () => this.toggleInstructions());
         
         // 设置缩放控制
         this.setupZoomControls();
+    }
+    
+    // 切换说明文本的可见性
+    toggleInstructions() {
+        const uiScene = this.scene.get(this.sceneKeyUI);
+        if (uiScene && uiScene.toggleInstructions) {
+            uiScene.toggleInstructions();
+        }
     }
     
     // 设置缩放控制
@@ -260,7 +271,7 @@ export class GenericScene extends Phaser.Scene {
         }
         
         // 清除UI场景中的所有显示
-        const uiScene = this.scene.get('GenericUIScene');
+        const uiScene = this.scene.get(this.sceneKeyUI);
         if (uiScene && uiScene.clearUIDisplay) {
             uiScene.clearUIDisplay();
         }
@@ -361,6 +372,7 @@ export class GenericScene extends Phaser.Scene {
     // 回到个人准备界面
     goToMainMenu() {
         this.removePauseOverlay();
+        this.scene.stop(this.sceneKeyUI);
         // 启动个人准备界面场景，让Phaser自动处理场景切换
         this.scene.start('Game', {
                     fromScene: this.sceneKey,
@@ -371,7 +383,7 @@ export class GenericScene extends Phaser.Scene {
     // 显示暂停覆盖层
     showPauseOverlay() {
         // 获取UI场景
-        const uiScene = this.scene.get('GenericUIScene');
+        const uiScene = this.scene.get(this.sceneKeyUI);
         if (uiScene && uiScene.showPauseOverlay) {
             uiScene.showPauseOverlay();
         } else {
@@ -383,7 +395,7 @@ export class GenericScene extends Phaser.Scene {
             const cameraHeight = this.cameras.main.height;
             
             // 创建半透明黑色覆盖层，使用相机的实际尺寸
-            this.pauseOverlay = this.add.rectangle(cameraCenterX, cameraCenterY, cameraWidth, cameraHeight, 0x000000, 0.5);
+            this.pauseOverlay = this.add.rectangle(cameraCenterX, cameraCenterY, cameraWidth * 2, cameraHeight * 2, 0x000000, 0.5);
             this.pauseOverlay.setDepth(1000);
             this.pauseOverlay.setScrollFactor(0); // 不随相机移动
             
@@ -428,12 +440,6 @@ export class GenericScene extends Phaser.Scene {
     
     // 移除暂停覆盖层
     removePauseOverlay() {
-        // 尝试从UI场景移除暂停覆盖层
-        const uiScene = this.scene.get('GenericUIScene');
-        if (uiScene && uiScene.removePauseOverlay) {
-            uiScene.removePauseOverlay();
-        }
-        
         // 移除当前场景中的暂停覆盖层（后备方案）
         if (this.pauseOverlay) {
             this.pauseOverlay.destroy();
@@ -544,8 +550,8 @@ export class GenericScene extends Phaser.Scene {
 
 // 为了保证UI不跟着相机缩放，需要单独写一个类
 export class GenericUIScene extends Phaser.Scene {
-    constructor() {
-        super('GenericUIScene');
+    constructor(sceneKey) {
+        super(sceneKey);
         this.instructions = null;
         this.UILayer = null;
         this.cooldownText = null;
@@ -555,6 +561,8 @@ export class GenericUIScene extends Phaser.Scene {
         this.pauseText = null;
         this.instructionText = null;
         this.mainMenuText = null;
+        this.instructionsVisible = false; // 说明文本是否可见
+        this.instructionTexts = []; // 存储说明文本对象的数组
     }
 
     create() {
@@ -562,25 +570,31 @@ export class GenericUIScene extends Phaser.Scene {
         this.UILayer = this.add.layer();
         
         // 创建控制说明文本
-        const style = {
+        const defaultStyle = {
             fontSize: '16px',
             fill: '#ffffff',
             backgroundColor: '#00000080',
             padding: { x: 10, y: 5 }
         };
         
-        // 说明文本
+        // 说明文本（与setUpInstructions类似）
         this.setUpInstructions();
 
         // 在左上角显示说明
         let y = 20;
         this.instructions.forEach(text => {
-            const textObj = this.add.text(20, y, text, style);
+            const textObj = this.add.text(20, y, text, defaultStyle);
             textObj.setScrollFactor(0);  // 不随相机移动
             textObj.setDepth(999);       // 确保在UILayer上，但允许overlayer在其之上
+            textObj.visible = this.instructionsVisible; // 初始隐藏
             this.UILayer.add(textObj);   // 添加到UI层
+            this.instructionTexts.push(textObj); // 存储到数组中
             y += 25;
         });
+        
+        // 创建自定义UI元素（与setUpInstructions类似，通过参数传入位置和文字）
+        this.setUpCustomUIElements();
+        this.createCustomUILayer(defaultStyle);
         
         // 创建冷却时间显示
         this.createCooldownDisplay();
@@ -709,6 +723,14 @@ export class GenericUIScene extends Phaser.Scene {
             this.energyStateText.setText('');
         }
     }
+    
+    // 切换说明文本的可见性
+    toggleInstructions() {
+        this.instructionsVisible = !this.instructionsVisible;
+        this.instructionTexts.forEach(textObj => {
+            textObj.visible = this.instructionsVisible;
+        });
+    }
 
     //在继承类中调用这个接口(const instructions 里面写显示的内容)
     setUpInstructions() {
@@ -719,5 +741,28 @@ export class GenericUIScene extends Phaser.Scene {
             'ESC: 暂停',
             '+/-: 缩放地图'];
         this.instructions = instructions;
+    }
+    
+    // 存储自定义UI元素的数组
+    customUIElements = [];
+    
+    // 设置自定义UI元素（与setUpInstructions类似）
+    // 继承类可以重写此方法，定义包含{x, y, text, style}的对象数组
+    setUpCustomUIElements() {
+        // 默认空实现，继承类可以重写
+        this.customUIElements = [];
+    }
+    
+    // 创建自定义UI图层（与setUpInstructions类似，通过参数传入位置和文字）
+    createCustomUILayer(defaultStyle) {
+        this.customUIElements.forEach(element => {
+            const { x, y, text, style } = element;
+            const finalStyle = style || defaultStyle;
+            
+            const textObj = this.add.text(x, y, text, finalStyle);
+            textObj.setScrollFactor(0);  // 不随相机移动
+            textObj.setDepth(999);       // 确保在UILayer上
+            this.UILayer.add(textObj);   // 添加到UI层
+        });
     }
 }

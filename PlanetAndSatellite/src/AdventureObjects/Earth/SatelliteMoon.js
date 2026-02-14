@@ -1,8 +1,8 @@
-import {GenericSatellite} from '../generalClasses/GenericSatellite.js';
+import {GenericSatellite} from '../../generalClasses/GenericSatellite.js';
 
-export class SatelliteEg extends GenericSatellite {
-    constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart) {
-        super(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart);
+export class SatelliteMoon extends GenericSatellite {
+    constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius, gravitySystem, setRestart) {
+        super(scene, x, y, texture, targetPlanets, setHealthBar, radius, gravitySystem, setRestart);
     }
     
     initializeVelocity() {
