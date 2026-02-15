@@ -6,9 +6,14 @@ import { GenericScene, GenericUIScene } from '../../../generalClasses/GenericSce
 export class SceneEarth extends GenericScene {
     constructor() {
         super('SceneEarth', true, 'rocket', false, 'UISceneEarth');
+        this.uiScene = null;
     }
     
-
+    create() {
+        super.create();
+        const uiScene = this.scene.get('UISceneEarth');
+        this.uiScene = uiScene;
+    }
     initializeBackground() {
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
@@ -21,6 +26,8 @@ export class SceneEarth extends GenericScene {
         // 设置初始相机缩放
         this.cameras.main.setZoom(0.9); // 设置相机缩放值为0.9
     }
+
+
     
 
     initializePlanets() {
@@ -31,7 +38,7 @@ export class SceneEarth extends GenericScene {
     }
 
     initializeSatellites() {
-        const height = 128; // 卫星距离行星更远60%（80 * 1.6）
+        const height = 400;
         this.initialSatellitePositions = [];
         if (this.planets.length > 0) {
             const planet = this.planets[0];
@@ -39,7 +46,7 @@ export class SceneEarth extends GenericScene {
             this.initialSatellitePositions.push({x: this.initialPlanetPositions[0].x + distanceFromCenter, 
                                                 y: this.initialPlanetPositions[0].y});
             this.satellites.push(new SatelliteMoon(this, this.initialSatellitePositions[0].x, this.initialSatellitePositions[0].y, 
-                'scene1moon', this.planets, false, 15, this.gravitySystem, true));
+                'scene1moon', this.planets, false, 60, this.gravitySystem, true));
         }
     }
 
@@ -63,9 +70,29 @@ export class SceneEarth extends GenericScene {
         }
     }
     
+    update(time, delta) {
+        if(this.isPaused === true) return;
+        super.update(time, delta);
+        this.ifSuccess();
+    }
+
+    ifSuccess() {
+        const successBoundary = 1000;
+        const uiScene = this.scene.get('UISceneEarth');
+        if(this.gameStarted === true && this.distance > successBoundary) {
+            this.isPaused = true;
+            this.physics.world.pause();
+            this.tweens.pauseAll();
+
+            console.log('enter Success');
+            uiScene.showSuccessText();
+        }
+    }
+
     // 开始冒险流程
     startAdventure() {
         console.log('开始冒险流程');
+        this.gameStarted = true;
         super.resetLeader();
         // 禁用所有按键
         this.disableControls();
@@ -118,9 +145,8 @@ export class SceneEarth extends GenericScene {
     
     showEarthCollapseMessage() {
         // 获取UI场景
-        const uiScene = this.scene.get('UISceneEarth');
-        if (uiScene) {
-            uiScene.showEarthCollapseMessage();
+        if (this.uiScene) {
+            this.uiScene.showEarthCollapseMessage();
         }
     }
     
@@ -197,6 +223,9 @@ export class UISceneEarth extends GenericUIScene {
         // 初始化主场景引用
         this.mainScene = this.scene.get('SceneEarth');
         //console.log("mainScene initialized:", this.mainScene);
+        
+        // 显示成功判定区域的overlayer
+        this.showSuccessAreaOverlay();
         
         // 开始第一个教程步骤
         this.startNextTutorialStep();
@@ -296,20 +325,19 @@ export class UISceneEarth extends GenericUIScene {
         this.cooldownTutorialText.setDepth(1001); // 确保在覆盖层之上
         
         // 停止整个界面两秒钟
-        const mainScene = this.scene.get('SceneEarth');
-        if (mainScene) {
-            mainScene.isPaused = true;
-            mainScene.physics.world.pause();
-            mainScene.tweens.pauseAll();
+        if (this.mainScene) {
+            this.mainScene.isPaused = true;
+            this.mainScene.physics.world.pause();
+            this.mainScene.tweens.pauseAll();
         }
         
         // 两秒后恢复正常
         this.time.delayedCall(2000, () => {
             this.hideCooldownTutorial();
-            if (mainScene) {
-                mainScene.isPaused = false;
-                mainScene.physics.world.resume();
-                mainScene.tweens.resumeAll();
+            if (this.mainScene) {
+                this.mainScene.isPaused = false;
+                this.mainScene.physics.world.resume();
+                this.mainScene.tweens.resumeAll();
             }
             
             // 进入下一个教程步骤
@@ -371,6 +399,48 @@ export class UISceneEarth extends GenericUIScene {
         this.overlays.push(bottomRightOverlay);
     }
     
+    showSuccessText() {
+        if(!this.overlays) {
+            this.overlays = [];
+        }
+        if(!this.cameras || !this.cameras.main) {
+            console.log('camera unset.');
+        }
+        const screenWidth = this.cameras.main.width;
+        const screenHeight = this.cameras.main.height;
+        const successOverlay = this.add.rectangle(
+            screenWidth/2,
+            screenHeight/2,
+            screenWidth,
+            screenHeight,
+            0x000000,
+            0.5
+        );
+        successOverlay.setScrollFactor(0);
+        successOverlay.setDepth(1000);
+        this.overlays.push(successOverlay);
+
+        this.successText = this.add.text(
+            screenWidth / 2,
+            screenHeight / 2 - 100,
+            'SUCCESS',
+            {
+                fontSize: '50px',
+                fill: '#ffffff',
+                backgroundColor: '#00000080',
+                padding: { x: 0, y: 0 }
+            }
+        );
+        this.successText.setOrigin(1, 0.5);
+        this.successText.setScrollFactor(0);
+        this.successText.setDepth(1001);
+
+        this.time.delayedCall(3000, () => {
+                    this.scene.stop('SceneEarth')
+                    this.scene.start('Game');
+                });
+    }
+
     hideCooldownTutorial() {
         // 移除提示语
         if (this.cooldownTutorialText) {
@@ -492,6 +562,24 @@ export class UISceneEarth extends GenericUIScene {
                 this.collapseMessageText = null;
             }
         });
+    }
+
+    showSuccessAreaOverlay() {
+        // 显示成功判定区域的overlayer
+        if(this.mainScene && this.mainScene.planets[0]) {
+            const earth = this.mainScene.planets[0];
+            const successBoundary = 1000;
+            
+            const successArea = this.add.circle(
+                earth.x,
+                earth.y,
+                successBoundary,
+                0x00ff00,
+                0.2
+            );
+            successArea.setDepth(-50); // 设置在背景之上，行星之下
+            successArea.setScrollFactor(0); // 固定位置，不随相机移动
+        }
     }
     
     // 清理资源

@@ -34,6 +34,10 @@ export class Preloader extends Phaser.Scene {
         this.load.image('scene1moon', 'EarthSceneAssets/scene1moon.png');
         this.load.image('scene1rocket', 'EarthSceneAssets/scene1rocket.png');
         this.load.image('scene1meatpie', 'EarthSceneAssets/scene1meatpie.png');
+        this.load.image('planet_with_arrow_green', 'LinkOfPlanetsSceneAssets/planet_with_arrow_green.png');
+        this.load.image('planet_with_arrow_orange', 'LinkOfPlanetsSceneAssets/planet_with_arrow_orange.png');
+        this.load.image('planet_with_arrow_red', 'LinkOfPlanetsSceneAssets/planet_with_arrow_red.png');
+        this.load.image('planet_with_arrow_yellow', 'LinkOfPlanetsSceneAssets/planet_with_arrow_yellow.png');
     }
 
     create() {

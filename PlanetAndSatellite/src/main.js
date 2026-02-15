@@ -8,6 +8,9 @@ import { PreparationSceneEg } from './Demonstration/PreparationSceneEg.js';
 import { SceneEg, UISceneEg } from './Demonstration/SceneEg.js';
 import { PreparationScene11 } from './scenes/AdventureScenes/EarthScene/PreparationScene11.js';
 import { SceneEarth, UISceneEarth } from './scenes/AdventureScenes/EarthScene/SceneEarth.js';
+import { PreparationScene12 } from './scenes/AdventureScenes/PlanetLinkScene/PreparationScene12.js';
+import { SceneLinkOfPlanets, UISceneLinkOfPlanets } from './scenes/AdventureScenes/PlanetLinkScene/SceneLinkOfPlanets.js';
+
 const config = {
     type: Phaser.AUTO,
     width: 800,
@@ -35,7 +38,9 @@ const config = {
         PreparationSceneEg,
         SceneEg, UISceneEg,
         PreparationScene11,  
-        SceneEarth, UISceneEarth
+        SceneEarth, UISceneEarth,
+        PreparationScene12, 
+        SceneLinkOfPlanets, UISceneLinkOfPlanets
     ]
 };
 

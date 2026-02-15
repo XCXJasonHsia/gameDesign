@@ -19,11 +19,11 @@ export class GenericRocket extends GenericSatellite {
         
         // 喷气相关时间
         this.thrustCooldown = 0; // 当前冷却时间
-        this.maxThrustCooldown = 3000; // 最大冷却时间（毫秒），调整为3秒
+        this.maxThrustCooldown = 2000; // 最大冷却时间（毫秒），调整为3秒
         this.lastThrustEndTime = 0; // 上次喷气结束时间
         this.isThrusting = false; // 是否正在喷气
         this.thrustStartTime = 0; // 本次喷气开始时间
-        this.maxThrustDuration = 1500; // 最大加速时长（毫秒），设置为1.5秒
+        this.maxThrustDuration = 3000; // 最大加速时长（毫秒），设置为1.5秒
         this.thrustDurationRemaining = 0; // 剩余加速时间
         
         // 创建推进器火焰效果

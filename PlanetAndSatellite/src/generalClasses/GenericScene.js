@@ -139,7 +139,7 @@ export class GenericScene extends Phaser.Scene {
     setupZoomControls() {
         // 缩放范围
         this.minZoom = 0.6;
-        this.maxZoom = 2.5;
+        this.maxZoom = 4;
         
         // 缩放步长（增大以获得更明显的变化）
         this.zoomStep = 0.2;
@@ -501,9 +501,10 @@ export class GenericScene extends Phaser.Scene {
         const dx = this.leader.x - this.planets[0].x;
         const dy = this.leader.y - this.planets[0].y;
         const distance = Math.sqrt(dx * dx + dy * dy);
+        this.distance = distance;
         
         // 如果飞出太远，重置位置
-        if (distance > maxDistance) {
+        if (this.distance > maxDistance) {
             console.log('火箭飞出太远，正在重置...');
             this.resetLeader();
         }
