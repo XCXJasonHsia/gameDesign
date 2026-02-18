@@ -251,7 +251,7 @@ export class GenericScene extends Phaser.Scene {
             this.cameras.main.startFollow(this.leader);
             
             // 重置相机缩放为0.9
-            this.cameras.main.setZoom(0.9);
+            this.cameras.main.setZoom(1.0);
         }
         
         // 清除所有警告和状态显示
@@ -262,7 +262,7 @@ export class GenericScene extends Phaser.Scene {
             this.cooldownText.visible = false;
         }
         if (this.energyStateText) {
-            this.energyStateText.setText('');
+            this.energyStateText.visible = false;
         }
         
         // 确保火箭的燃油警告被清除
@@ -721,7 +721,7 @@ export class GenericUIScene extends Phaser.Scene {
         
         // 清除能量状态显示
         if (this.energyStateText) {
-            this.energyStateText.setText('');
+            this.energyStateText.visible = false;
         }
     }
     

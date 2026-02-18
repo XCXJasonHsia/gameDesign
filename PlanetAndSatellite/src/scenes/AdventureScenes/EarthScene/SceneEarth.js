@@ -13,6 +13,9 @@ export class SceneEarth extends GenericScene {
         super.create();
         const uiScene = this.scene.get('UISceneEarth');
         this.uiScene = uiScene;
+        if (this.uiScene.tutorialStep === this.uiScene.tutorialSteps.length) {
+            this.startAdventure();
+        }
     }
     initializeBackground() {
         const centerX = this.cameras.main.width / 2;
@@ -25,6 +28,57 @@ export class SceneEarth extends GenericScene {
         
         // 设置初始相机缩放
         this.cameras.main.setZoom(0.9); // 设置相机缩放值为0.9
+    }
+
+    showSuccessAreaOverlay() {
+        // 显示成功判定区域的overlayer
+        if(this.planets[0] && this.cameras && this.cameras.main) {
+            const earth = this.planets[0];
+            const successBoundary = 1000;
+            const screenWidth = this.cameras.main.width;
+            const screenHeight = this.cameras.main.height;
+            
+            // 创建整个屏幕大小的绿色半透明背景
+            const outerArea = this.add.rectangle(
+                screenWidth / 2,
+                screenHeight / 2,
+                screenWidth,
+                screenHeight,
+                0x00ff00,
+                0.2
+            );
+            outerArea.setDepth(-51); // 设置在背景之上，行星之下
+            
+            // 创建圆形遮罩，显示出中间的游戏场景
+            const maskCircle = this.add.circle(
+                earth.x,
+                earth.y,
+                successBoundary,
+                0x000000,
+                1
+            );
+            maskCircle.setDepth(-50); // 设置在绿色背景之上
+            
+            // 使用圆形作为遮罩，将中间的绿色背景移除
+            outerArea.setMask(new Phaser.Display.Masks.BitmapMask(this, maskCircle));
+            
+            // 让遮罩跟随相机移动，通过在update方法中更新位置
+            this.successMaskCircle = maskCircle;
+            this.successOuterArea = outerArea;
+        }
+    }
+
+    update(time, delta) {
+        if(this.isPaused === true) return;
+        super.update(time, delta);
+        this.ifSuccess();
+        
+        // 更新成功判定区域的遮罩位置，使其跟随相机移动
+        if(this.successMaskCircle && this.planets[0]) {
+            const earth = this.planets[0];
+            this.successMaskCircle.x = earth.x;
+            this.successMaskCircle.y = earth.y;
+        }
     }
 
 
@@ -134,6 +188,9 @@ export class SceneEarth extends GenericScene {
         // 设置earthCollapse为true
         earth.earthCollapse = true;
         
+        // 显示成功判定区域的overlayer
+        this.showSuccessAreaOverlay();
+        
         // 显示提示信息
         this.showEarthCollapseMessage();
         
@@ -176,6 +233,16 @@ export class SceneEarth extends GenericScene {
             earth.earthCollapse = false;
         }
         
+        // 撤除成功判定区域的覆盖层
+        if (this.successOuterArea) {
+            this.successOuterArea.destroy();
+            this.successOuterArea = null;
+        }
+        if (this.successMaskCircle) {
+            this.successMaskCircle.destroy();
+            this.successMaskCircle = null;
+        }
+        
         // 确保UI场景中的所有显示也被重置
         const uiScene = this.scene.get('UISceneEarth');
         if (uiScene) {
@@ -202,7 +269,7 @@ export class SceneEarth extends GenericScene {
 export class UISceneEarth extends GenericUIScene {
     constructor() {
         super('UISceneEarth');
-        this.tutorialStep = 0;
+        this.tutorialStep = 7;
         this.tutorialText = null;
         this.collisionHintText = null;
         this.tutorialSteps = [
@@ -223,9 +290,6 @@ export class UISceneEarth extends GenericUIScene {
         // 初始化主场景引用
         this.mainScene = this.scene.get('SceneEarth');
         //console.log("mainScene initialized:", this.mainScene);
-        
-        // 显示成功判定区域的overlayer
-        this.showSuccessAreaOverlay();
         
         // 开始第一个教程步骤
         this.startNextTutorialStep();

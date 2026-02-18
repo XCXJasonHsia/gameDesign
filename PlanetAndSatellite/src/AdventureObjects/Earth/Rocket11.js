@@ -74,7 +74,7 @@ export class Rocket11 extends GenericRocket {
             tangent.normalize();
             
             // 设置初始速度
-            this.initialVelocity = tangent.scale(orbitalSpeed * 2 / 3);
+            this.initialVelocity = tangent.scale(orbitalSpeed);
         } catch(error) {
             console.error('Satellite:initializeVelocity failed.');
         }

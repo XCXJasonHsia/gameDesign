@@ -75,7 +75,7 @@ export class Satellite12 extends GenericSatellite {
             tangent.normalize();
             
             // 设置初始速度，降低30%
-            this.initialVelocity = tangent.scale(orbitalSpeed * 3);
+            this.initialVelocity = tangent.scale(orbitalSpeed);
         } catch(error) {
             console.error('Satellite:initializeVelocity failed.');
         }

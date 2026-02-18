@@ -27,7 +27,7 @@ export class Game extends Phaser.Scene {
         subtitle.setOrigin(0.5);
         
         // 创建 Battle 按钮
-        const battleButton = this.add.text(400, 320, 'LinkOfPlanets', {
+        const battleButton = this.add.text(400, 320, 'DualPlanets', {
             fontSize: '32px',
             fill: '#ffffff',
             backgroundColor: '#333333',
@@ -77,7 +77,7 @@ export class Game extends Phaser.Scene {
                 yoyo: true,
                 onComplete: () => {
                     // 切换到 Battle 场景
-                    this.scene.start('PreparationScene12', {
+                    this.scene.start('PreparationScene23', {
                     fromScene: 'Game',
                     previousState: this.previousState
                 });

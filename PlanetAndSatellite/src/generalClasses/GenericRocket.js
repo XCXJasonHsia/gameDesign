@@ -5,7 +5,7 @@ export class GenericRocket extends GenericSatellite {
         super(scene, x, y, texture, targetPlanets, setHealthBar, radius, gravitySystem, setRestart);
         
         // Rocket特有属性
-        this.thrustPower = 1000000000; // 推进器推力
+        this.thrustPower = 100; // 推进器推力
         this.fuel = 1000; // 燃料量
         this.maxFuel = 1000; // 最大燃料
         this.fuelConsumptionRate = 1.69; // 燃料消耗率，再增加30%

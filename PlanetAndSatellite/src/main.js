@@ -10,7 +10,8 @@ import { PreparationScene11 } from './scenes/AdventureScenes/EarthScene/Preparat
 import { SceneEarth, UISceneEarth } from './scenes/AdventureScenes/EarthScene/SceneEarth.js';
 import { PreparationScene12 } from './scenes/AdventureScenes/PlanetLinkScene/PreparationScene12.js';
 import { SceneLinkOfPlanets, UISceneLinkOfPlanets } from './scenes/AdventureScenes/PlanetLinkScene/SceneLinkOfPlanets.js';
-
+import { PreparationScene23 } from './scenes/AdventureScenes/DualPlanetsScene/PreparationScene23.js';
+import { SceneDualPlanets, UISceneDualPlanets } from './scenes/AdventureScenes/DualPlanetsScene/SceneDualPlanets.js';
 const config = {
     type: Phaser.AUTO,
     width: 800,
@@ -40,7 +41,9 @@ const config = {
         PreparationScene11,  
         SceneEarth, UISceneEarth,
         PreparationScene12, 
-        SceneLinkOfPlanets, UISceneLinkOfPlanets
+        SceneLinkOfPlanets, UISceneLinkOfPlanets, 
+        PreparationScene23, 
+        SceneDualPlanets, UISceneDualPlanets
     ]
 };
 

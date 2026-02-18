@@ -34,7 +34,7 @@ export class GravitySystem {
         this.maxPower = -1;             // 最大幂律值
         
         // 物理距离比例尺（增加物理距离）
-        this.distanceScale = 2.0;       // 物理距离是显示距离的2倍
+        this.distanceScale = 1.0;       // 物理距离是显示距离的2倍
     }
     
     // 添加行星时创建对应的滑动条

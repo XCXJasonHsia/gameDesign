@@ -1,10 +1,10 @@
-import {GenericSatellite} from '../../generalClasses/GenericSatellite.js';
+import { GenericRocket } from '../../generalClasses/GenericRocket.js';
 
-export class SatelliteMoon extends GenericSatellite {
-    constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius, gravitySystem, setRestart) {
-        super(scene, x, y, texture, targetPlanets, setHealthBar, radius, gravitySystem, setRestart);
+export class Rocket23 extends GenericRocket {
+    constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart, infiniteFuel) {
+        super(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart, infiniteFuel);
     }
-    
+
     initializeVelocity() {
         // 选择第一个目标行星作为轨道中心
         this.targetPlanet = this.targetPlanets[0];
@@ -62,7 +62,7 @@ export class SatelliteMoon extends GenericSatellite {
             }
             
             // 限制速度范围以确保稳定运动
-            orbitalSpeed = Phaser.Math.Clamp(orbitalSpeed, 1, 100);
+            orbitalSpeed = Phaser.Math.Clamp(orbitalSpeed, 1, 1000);
             
             // 计算切向方向（垂直于径向）
             const tangent = new Phaser.Math.Vector2(
@@ -73,17 +73,12 @@ export class SatelliteMoon extends GenericSatellite {
             // 确保切向向量归一化
             tangent.normalize();
             
-            // 设置初始速度，降低30%
+            // 设置初始速度
             this.initialVelocity = tangent.scale(orbitalSpeed);
+            console.log('initialSpeed = ', this.orbitalSpeed);
         } catch(error) {
             console.error('Satellite:initializeVelocity failed.');
         }
         
     }
-    /*
-    initializeVelocity() {
-         // 给一个初始切向速度
-        this.initialVelocity = new Phaser.Math.Vector2(0, 30);
-    }
-    */
 }
