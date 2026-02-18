@@ -269,7 +269,7 @@ export class SceneEarth extends GenericScene {
 export class UISceneEarth extends GenericUIScene {
     constructor() {
         super('UISceneEarth');
-        this.tutorialStep = 7;
+        this.tutorialStep = 0;
         this.tutorialText = null;
         this.collisionHintText = null;
         this.tutorialSteps = [
@@ -277,7 +277,7 @@ export class UISceneEarth extends GenericUIScene {
             { key: 'S', text: '按 S 向后推进' },
             { key: 'D', text: '按 D 向右喷气' },
             { key: 'A', text: '按 A 向左喷气' },
-            { key: 'SPACE', text: '按空格增加推力' },
+            { key: 'SPACE', text: '按空格+W/S/A/D增加推力' },
             { key: 'PLUS', text: '按 + 放大地图' },
             { key: 'MINUS', text: '按 - 缩小地图' }
         ];
