@@ -14,6 +14,7 @@ export class PlanetDual extends Phaser.Physics.Arcade.Sprite {
         this.planet1.mass = bodyMass1;
         this.planet1.G = 4000;
         this.planet1.power = -2;
+        this.planet1.texture = texture1;
 
         // 创建第二个行星
         this.planet2 = scene.add.sprite(x2, y2, texture2);
@@ -27,6 +28,7 @@ export class PlanetDual extends Phaser.Physics.Arcade.Sprite {
         this.planet2.mass = bodyMass2;
         this.planet2.G = 4000;
         this.planet2.power = -2;
+        this.planet2.texture = texture2;
 
         // 韦尔莱积分法状态变量
         this.planet1.position = new Phaser.Math.Vector2(x1, y1);
@@ -56,6 +58,28 @@ export class PlanetDual extends Phaser.Physics.Arcade.Sprite {
 
         // 标记为双行星系统
         this.isPlanetDual = true;
+
+        this.initAnimations();
+    }
+
+    initAnimations() {
+        // 为planet1创建并播放动画，只使用两个帧
+        this.planet1.anims.create({
+            key: 'planet1_anim',
+            frames: this.planet1.anims.generateFrameNumbers(this.planet1.texture, {start: 0, end: 1 }), 
+            frameRate: 2, 
+            repeat: -1
+        });
+        this.planet1.anims.play('planet1_anim');
+
+        // 为planet2创建并播放动画，只使用两个帧
+        this.planet2.anims.create({
+            key: 'planet2_anim',
+            frames: this.planet2.anims.generateFrameNumbers(this.planet2.texture, {start: 0, end: 1 }), 
+            frameRate: 2, 
+            repeat: -1
+        });
+        this.planet2.anims.play('planet2_anim');
     }
 
     initializeVelocity() {

@@ -72,7 +72,7 @@ export class SceneDualPlanets extends GenericScene {
         this.initialPlanetPositions.push({x: this.centerX - 600, y: this.centerY});
         this.initialPlanetPositions.push({x: this.centerX + 600, y: this.centerY});
         this.planetDual = new PlanetDual(this, this.initialPlanetPositions[0].x, this.initialPlanetPositions[0].y, 
-        this.initialPlanetPositions[1].x, this.initialPlanetPositions[1].y, 'cartoon_moon', 'cartoon_moon', 200, 200, 10000, 10000);
+        this.initialPlanetPositions[1].x, this.initialPlanetPositions[1].y, 'planet_angry_spriteSheet', 'planet_angry_spriteSheet', 200, 200, 10000, 10000);
         this.planets.push(this.planetDual.planet1);
         this.planets.push(this.planetDual.planet2);
     }
