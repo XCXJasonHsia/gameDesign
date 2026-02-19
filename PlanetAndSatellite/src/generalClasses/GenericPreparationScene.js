@@ -12,7 +12,7 @@ export class GenericPreparationScene extends Phaser.Scene {
         // 创建背景
         const bg = this.add.image(centerX, centerY, 'bg');
         bg.setDepth(-100);
-        bg.setScale(2);
+        bg.setScale(1);
         
         // 创建标题
         const title = this.add.text(centerX, centerY - 100, '个人准备界面', {
