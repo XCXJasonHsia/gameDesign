@@ -12,6 +12,7 @@ import { PreparationScene12 } from './scenes/AdventureScenes/PlanetLinkScene/Pre
 import { SceneLinkOfPlanets, UISceneLinkOfPlanets } from './scenes/AdventureScenes/PlanetLinkScene/SceneLinkOfPlanets.js';
 import { PreparationScene23 } from './scenes/AdventureScenes/DualPlanetsScene/PreparationScene23.js';
 import { SceneDualPlanets, UISceneDualPlanets } from './scenes/AdventureScenes/DualPlanetsScene/SceneDualPlanets.js';
+import { SurfaceplayScene } from './scenes/SurfaceScenes/Surfaceplay.js';
 const config = {
     type: Phaser.AUTO,
     width: 800,
@@ -43,7 +44,8 @@ const config = {
         PreparationScene12, 
         SceneLinkOfPlanets, UISceneLinkOfPlanets, 
         PreparationScene23, 
-        SceneDualPlanets, UISceneDualPlanets
+        SceneDualPlanets, UISceneDualPlanets,
+        SurfaceplayScene
     ]
 };
 

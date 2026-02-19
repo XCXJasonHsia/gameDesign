@@ -38,6 +38,15 @@ export class Preloader extends Phaser.Scene {
         this.load.image('planet_with_arrow_orange', 'LinkOfPlanetsSceneAssets/planet_with_arrow_orange.png');
         this.load.image('planet_with_arrow_red', 'LinkOfPlanetsSceneAssets/planet_with_arrow_red.png');
         this.load.image('planet_with_arrow_yellow', 'LinkOfPlanetsSceneAssets/planet_with_arrow_yellow.png');
+        this.load.image('sky','SurfacePlaySceneAssets/sky.png');
+        this.load.image('ground', 'SurfacePlaySceneAssets/platform.png');      
+        this.load.image('star', 'SurfacePlaySceneAssets/star.png');
+        this.load.image('bomb', 'SurfacePlaySceneAssets/bomb.png');
+        this.load.spritesheet(
+            'dude',
+            'SurfacePlaySceneAssets/dude.png',
+            {frameWidth : 32, frameHeight : 48}
+        );
         this.load.spritesheet(
             'planet_angry_spriteSheet', 
             'planet_angry_spriteSheet.png',

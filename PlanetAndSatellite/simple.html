@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Test</title>
+    <script src="./phaser.js"></script>
+</head>
+<body>
+    <div id="game-container"></div>
+    <script>
+        const config = {
+            type: Phaser.AUTO,
+            width: 800,
+            height: 600,
+            parent: 'game-container',
+            backgroundColor: '#028af8',
+            scene: {
+                preload: function() {
+                    this.load.image('bg', 'assets/bg.png');
+                },
+                create: function() {
+                    this.add.image(400, 300, 'bg');
+                    this.add.text(400, 300, 'Hello Phaser!', {
+                        fontSize: '32px',
+                        fill: '#ffffff'
+                    }).setOrigin(0.5);
+                }
+            }
+        };
+        new Phaser.Game(config);
+    </script>
+</body>
+</html>

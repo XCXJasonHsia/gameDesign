@@ -1,0 +1,7 @@
+{
+  "name": "PlanetAndSatellite",
+  "version": "1.0.0",
+  "type": "phaser3",
+  "entry": "index.html",
+  "port": 8000
+}
