@@ -22,12 +22,12 @@ export class SceneEarth extends GenericScene {
         const centerY = this.cameras.main.height / 2;
         this.centerX = centerX;
         this.centerY = centerY;
-        const bg = this.add.image(centerX, centerY, 'bg');
+        const bg = this.add.image(centerX, centerY, 'bg2');
         bg.setDepth(-100); // 设置背景为最底层
-        bg.setScale(2); // 背景图片放大一倍
+        bg.setScale(1); // 背景图片放大一倍（原来的50%）
         
         // 设置初始相机缩放
-        this.cameras.main.setZoom(0.9); // 设置相机缩放值为0.9
+        this.cameras.main.setZoom(1.4); // 设置相机缩放值为1.4（原来的0.9 + 0.5）
     }
 
     showSuccessAreaOverlay() {

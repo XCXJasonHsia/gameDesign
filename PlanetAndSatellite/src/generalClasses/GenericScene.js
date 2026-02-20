@@ -251,7 +251,7 @@ export class GenericScene extends Phaser.Scene {
             this.cameras.main.startFollow(this.leader);
             
             // 重置相机缩放为0.9
-            this.cameras.main.setZoom(1.0);
+            this.cameras.main.setZoom(1.5);
         }
         
         // 清除所有警告和状态显示
@@ -365,16 +365,30 @@ export class GenericScene extends Phaser.Scene {
         // 恢复所有tweens（动画）
         this.tweens.resumeAll();
         
-        // 移除暂停覆盖层
+        // 移除UI场景中的暂停覆盖层
+        const uiScene = this.scene.get(this.sceneKeyUI);
+        if (uiScene && uiScene.removePauseOverlay) {
+            uiScene.removePauseOverlay();
+        }
+        
+        // 移除当前场景中的暂停覆盖层（后备方案）
         this.removePauseOverlay();
     }
     
     // 回到个人准备界面
     goToMainMenu() {
+        // 移除UI场景中的暂停覆盖层
+        const uiScene = this.scene.get(this.sceneKeyUI);
+        if (uiScene && uiScene.removePauseOverlay) {
+            uiScene.removePauseOverlay();
+        }
+        
+        // 移除当前场景中的暂停覆盖层（后备方案）
         this.removePauseOverlay();
+        
         this.scene.stop(this.sceneKeyUI);
         // 启动个人准备界面场景，让Phaser自动处理场景切换
-        this.scene.start('Game', {
+        this.scene.start('PreparationSceneEg', {
                     fromScene: this.sceneKey,
                     previousState: this.previousState
                 });
@@ -703,8 +717,79 @@ export class GenericUIScene extends Phaser.Scene {
             this.energyStateText.setStyle({ fill: '#ffff00' }); // 黄色
         }
         
-        // 更新能量状态显示
-        this.energyStateText.setText(state);
+        // 更新能量状态文本
+        this.energyStateText.setText(`能量状态: ${state}`);
+    }
+    
+    // 显示暂停覆盖层
+    showPauseOverlay() {
+        // 获取屏幕尺寸
+        const screenWidth = this.cameras.main.width;
+        const screenHeight = this.cameras.main.height;
+        const screenCenterX = screenWidth / 2;
+        const screenCenterY = screenHeight / 2;
+        
+        // 创建半透明黑色覆盖层，使用屏幕的实际尺寸
+        this.pauseOverlay = this.add.rectangle(screenCenterX, screenCenterY, screenWidth, screenHeight, 0x000000, 0.5);
+        this.pauseOverlay.setDepth(1000);
+        this.pauseOverlay.setScrollFactor(0); // 不随相机移动
+        
+        // 创建暂停文字
+        this.pauseText = this.add.text(screenCenterX, screenCenterY - 50, '游戏暂停', {
+            fontSize: '48px',
+            fill: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 4,
+            fontFamily: 'Arial, sans-serif',
+            padding: { x: 10, y: 10 }
+        });
+        this.pauseText.setOrigin(0.5);
+        this.pauseText.setDepth(1001);
+        this.pauseText.setScrollFactor(0); // 不随相机移动
+        
+        // 创建提示文字
+        this.instructionText = this.add.text(screenCenterX, screenCenterY + 20, '按ESC继续游戏', {
+            fontSize: '20px',
+            fill: '#ffff00',
+            backgroundColor: '#00000080',
+            padding: { x: 10, y: 10 },
+            fontFamily: 'Arial, sans-serif'
+        });
+        this.instructionText.setOrigin(0.5);
+        this.instructionText.setDepth(1001);
+        this.instructionText.setScrollFactor(0); // 不随相机移动
+        
+        // 创建回到个人准备界面提示文字
+        this.mainMenuText = this.add.text(screenCenterX, screenCenterY + 90, '按Enter回到个人准备界面', {
+            fontSize: '20px',
+            fill: '#ffff00',
+            backgroundColor: '#00000080',
+            padding: { x: 10, y: 10 },
+            fontFamily: 'Arial, sans-serif'
+        });
+        this.mainMenuText.setOrigin(0.5);
+        this.mainMenuText.setDepth(1001);
+        this.mainMenuText.setScrollFactor(0); // 不随相机移动
+    }
+    
+    // 移除暂停覆盖层
+    removePauseOverlay() {
+        if (this.pauseOverlay) {
+            this.pauseOverlay.destroy();
+            this.pauseOverlay = null;
+        }
+        if (this.pauseText) {
+            this.pauseText.destroy();
+            this.pauseText = null;
+        }
+        if (this.instructionText) {
+            this.instructionText.destroy();
+            this.instructionText = null;
+        }
+        if (this.mainMenuText) {
+            this.mainMenuText.destroy();
+            this.mainMenuText = null;
+        }
     }
     
     // 清除所有UI显示

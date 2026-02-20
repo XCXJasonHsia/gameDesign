@@ -13,8 +13,9 @@ import { SceneLinkOfPlanets, UISceneLinkOfPlanets } from './scenes/AdventureScen
 import { PreparationScene23 } from './scenes/AdventureScenes/DualPlanetsScene/PreparationScene23.js';
 import { SceneDualPlanets, UISceneDualPlanets } from './scenes/AdventureScenes/DualPlanetsScene/SceneDualPlanets.js';
 import { SurfaceplayScene } from './scenes/SurfaceScenes/Surfaceplay.js';
+import { MapScene } from './scenes/MapScene.js';
 const config = {
-    type: Phaser.AUTO,
+    type: Phaser.WEBGL,
     width: 800,
     height: 600,
     parent: 'game-container',
@@ -29,6 +30,12 @@ const config = {
     scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
+    },
+    render: {
+        pixelArt: false,
+        antialias: true,
+        antialiasGL: true,
+        roundPixels: false
     },
     scene: [
         Boot,
@@ -45,7 +52,8 @@ const config = {
         SceneLinkOfPlanets, UISceneLinkOfPlanets, 
         PreparationScene23, 
         SceneDualPlanets, UISceneDualPlanets,
-        SurfaceplayScene
+        SurfaceplayScene,
+        MapScene
     ]
 };
 

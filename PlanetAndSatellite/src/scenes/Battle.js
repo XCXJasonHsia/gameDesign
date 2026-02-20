@@ -21,11 +21,11 @@ export class Battle extends Phaser.Scene {
 
     create() {
         // 创建背景
-        const bg = this.add.image(400, 300, 'bg');
-        bg.setScale(2); // 背景图片放大一倍
+        const bg = this.add.image(400, 300, 'bg2');
+        bg.setScale(1); // 背景图片放大一倍（原来的50%）
         
         // 设置初始相机缩放
-        this.cameras.main.setZoom(0.9); // 设置相机缩放值为0.9
+        this.cameras.main.setZoom(1.4); // 设置相机缩放值为1.4（原来的0.9 + 0.5）
 
         // 初始化游戏
         this.initializeGame();
@@ -251,7 +251,7 @@ export class Battle extends Phaser.Scene {
         this.initializeGame();
         
         // 重置相机缩放为0.9
-        this.cameras.main.setZoom(0.9);
+        this.cameras.main.setZoom(1.4);
         
         console.log('游戏已重新开始！');
     }

@@ -26,9 +26,12 @@ export class Preloader extends Phaser.Scene {
         //  Load the assets for the game - Replace with your own assets
         this.load.setPath('assets');
         this.load.image('bg', 'bg.png');
+        this.load.image('bg2', 'bg2.png');
+        this.load.image('bg_prepare.png', 'bg_prepare.png');
         this.load.image('star', 'star.png');
         this.load.image('cartoon_moon', 'cartoon_moon.png');
         this.load.image('cartoon_rocket', 'cartoon_rocket.png');
+        this.load.image('rocket', 'rocket.png');
         this.load.image('cartoon_earth', 'cartoon_earth.png');
         this.load.image('scene1earth', 'EarthSceneAssets/scene1earth.png');
         this.load.image('scene1moon', 'EarthSceneAssets/scene1moon.png');
@@ -42,10 +45,13 @@ export class Preloader extends Phaser.Scene {
         this.load.image('ground', 'SurfacePlaySceneAssets/platform.png');      
         this.load.image('star', 'SurfacePlaySceneAssets/star.png');
         this.load.image('bomb', 'SurfacePlaySceneAssets/bomb.png');
+        this.load.image('fire1', 'fire1.png');
+        this.load.image('fire2', 'fire2.png');
+        this.load.image('bg_map.png', 'bg_map.png');
         this.load.spritesheet(
             'dude',
             'SurfacePlaySceneAssets/dude.png',
-            {frameWidth : 32, frameHeight : 48}
+            {frameWidth : 455, frameHeight : 607}
         );
         this.load.spritesheet(
             'planet_angry_spriteSheet', 

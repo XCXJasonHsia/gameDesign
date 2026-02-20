@@ -22,12 +22,12 @@ export class SceneLinkOfPlanets extends GenericScene {
         const centerY = this.cameras.main.height / 2;
         this.centerX = centerX;
         this.centerY = centerY;
-        const bg = this.add.image(centerX, centerY, 'bg');
+        const bg = this.add.image(centerX, centerY, 'bg2');
         bg.setDepth(-100); // 设置背景为最底层
-        bg.setScale(10); // 背景图片放大x倍
+        bg.setScale(5); // 背景图片放大x倍（原来的50%）
         
         // 设置初始相机缩放
-        this.cameras.main.setZoom(1.0); // 设置相机缩放值为0.9
+        this.cameras.main.setZoom(1.5); // 设置相机缩放值为1.5（原来的1.0 + 0.5）
     }
 
     showSuccessAreaOverlay() {

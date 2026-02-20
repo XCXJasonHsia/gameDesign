@@ -9,6 +9,7 @@ export class Player extends Phaser.Physics.Arcade.Sprite
 
         this.setBounce(0.2);
         this.setCollideWorldBounds(true);
+        this.setScale(48 / 607); // 缩小到原来的大小
         this.initAnimations();
     }
     

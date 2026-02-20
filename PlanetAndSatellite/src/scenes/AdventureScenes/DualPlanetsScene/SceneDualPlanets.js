@@ -25,19 +25,19 @@ export class SceneDualPlanets extends GenericScene {
 
     resetLeader() {
         super.resetLeader();
-        this.cameras.main.setZoom(0.4);
+        this.cameras.main.setZoom(0.9);
     }
     initializeBackground() {
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
         this.centerX = centerX;
         this.centerY = centerY;
-        const bg = this.add.image(centerX, centerY, 'bg');
+        const bg = this.add.image(centerX, centerY, 'bg2');
         bg.setDepth(-100); // 设置背景为最底层
-        bg.setScale(10); // 背景图片放大x倍
+        bg.setScale(2); // 背景图片放大x倍
         
         // 设置初始相机缩放
-        this.cameras.main.setZoom(0.4); // 设置相机缩放值
+        this.cameras.main.setZoom(0.9); // 设置相机缩放值（原来的0.4 + 0.5）
     }
 
     showSuccessAreaOverlay() {

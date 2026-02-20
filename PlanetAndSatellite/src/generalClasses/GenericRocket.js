@@ -57,28 +57,40 @@ export class GenericRocket extends GenericSatellite {
         this.containerForNotChildrenObjects = scene.add.container();
 
         // 前向推进器火焰
-        this.forwardFlame = scene.add.graphics();
+        this.forwardFlame = scene.add.image(0, 0, 'fire1');
         this.forwardFlame.setDepth(-1);
+        this.forwardFlame.visible = false;
         this.containerForNotChildrenObjects.add(this.forwardFlame);
+        
         // 后向推进器火焰
-        this.backwardFlame = scene.add.graphics();
+        this.backwardFlame = scene.add.image(0, 0, 'fire1');
         this.backwardFlame.setDepth(-1);
+        this.backwardFlame.visible = false;
         this.containerForNotChildrenObjects.add(this.backwardFlame);
+        
         // 左向推进器火焰
-        this.leftFlame = scene.add.graphics();
+        this.leftFlame = scene.add.image(0, 0, 'fire1');
         this.leftFlame.setDepth(-1);
+        this.leftFlame.visible = false;
         this.containerForNotChildrenObjects.add(this.leftFlame);
+        
         // 右向推进器火焰
-        this.rightFlame = scene.add.graphics();
+        this.rightFlame = scene.add.image(0, 0, 'fire1');
         this.rightFlame.setDepth(-1);
+        this.rightFlame.visible = false;
         this.containerForNotChildrenObjects.add(this.rightFlame);
+        
+        // 火焰动画状态
+        this.fireFrame = 1;
+        this.fireTimer = 0;
+        this.fireFrameDuration = 100; // 每帧持续100ms
     }
     
     createFuelDisplay(scene) {
         // 燃料文本
         const fuelPercent = Math.floor((this.fuel / this.maxFuel) * 100);
         this.fuelText = scene.add.text(
-            this.x - 25, this.y - this.displayHeight/2 - 1, // 初始位置，向左移动25px
+            this.x - 25, this.y - this.displayHeight/2 - 1.2, // 初始位置，向左移动25px，距离增加20%
             `燃料: ${fuelPercent}%`,
             {
                 fontSize: '9.18px', // 缩小15%
@@ -95,7 +107,7 @@ export class GenericRocket extends GenericSatellite {
         
         // 燃料条背景（红色，表示已消耗的部分）
         this.fuelBarBg = scene.add.rectangle(
-            this.x - 25, this.y - this.displayHeight/2 + 8, // 向左移动25px，更靠近飞船
+            this.x - 25, this.y - this.displayHeight/2 + 9.6, // 向左移动25px，距离增加20%
             textWidth, 6.12, // 与文字等长，高度缩小15%
             0xff0000 // 红色背景
         );
@@ -104,7 +116,7 @@ export class GenericRocket extends GenericSatellite {
         
         // 燃料条前景
         this.fuelBar = scene.add.rectangle(
-            this.x - 25, this.y - this.displayHeight/2 + 8, // 向左移动25px，与背景一致
+            this.x - 25, this.y - this.displayHeight/2 + 9.6, // 向左移动25px，与背景一致，距离增加20%
             textWidth, 6.12, // 与文字等长，高度缩小15%
             0x00ff00
         );
@@ -234,10 +246,11 @@ export class GenericRocket extends GenericSatellite {
         // 开始喷气或持续喷气
         if (canThrust && isAnyThrustKeyDown) {
             // 无论是否刚开始喷气，都先更新推进器状态
-            this.isThrustingForward = this.controlKeys.up.isDown;
-            this.isThrustingBackward = this.controlKeys.down.isDown;
-            this.isThrustingLeft = this.controlKeys.left.isDown;
-            this.isThrustingRight = this.controlKeys.right.isDown;
+            // 调整按键映射：按w向后喷火，按s向前喷火，按a向右喷火，按d向左喷火
+            this.isThrustingForward = this.controlKeys.down.isDown; // s键向前喷火
+            this.isThrustingBackward = this.controlKeys.up.isDown; // w键向后喷火
+            this.isThrustingLeft = this.controlKeys.right.isDown; // d键向左喷火
+            this.isThrustingRight = this.controlKeys.left.isDown; // a键向右喷火
             
             // 空格键：增加推力
             if (this.controlKeys.space.isDown) {
@@ -341,12 +354,6 @@ export class GenericRocket extends GenericSatellite {
     }
     
     updateThrusterEffects() {
-        // 清空所有火焰
-        this.forwardFlame.clear();
-        this.backwardFlame.clear();
-        this.leftFlame.clear();
-        this.rightFlame.clear();
-        
         // 计算火箭方向
         const velocity = this.body.velocity.clone();
         const speed = velocity.length();
@@ -364,63 +371,92 @@ export class GenericRocket extends GenericSatellite {
         const normalLeft = new Phaser.Math.Vector2(-direction.y, direction.x);
         const normalRight = new Phaser.Math.Vector2(direction.y, -direction.x);
         
+        // 更新火焰动画
+        this.updateFireAnimation();
+        
         // 前向推进器火焰
         if (this.isThrustingForward && this.fuel > 0) {
-            this.forwardFlame.lineStyle(10, 0xff6600, 0.8);
-            this.forwardFlame.beginPath();
-            this.forwardFlame.moveTo(rocketX, rocketY);
-            const flameEnd = new Phaser.Math.Vector2(
-                rocketX - direction.x * 30,
-                rocketY - direction.y * 30
-            );
-            this.forwardFlame.lineTo(flameEnd.x, flameEnd.y);
-            this.forwardFlame.strokePath();
+            const flameX = rocketX - direction.x * -46; // 距离火箭减小7%
+            const flameY = rocketY - direction.y * -46; // 距离火箭减小7%
+            
+            this.forwardFlame.setPosition(flameX, flameY);
+            this.forwardFlame.setRotation(Math.atan2(direction.y, direction.x) + Math.PI); // 反向火焰方向
+            this.forwardFlame.setScale(0.034138125); // 缩小70%
+            this.forwardFlame.visible = true;
+        } else {
+            this.forwardFlame.visible = false;
         }
         
         // 后向推进器火焰
         if (this.isThrustingBackward && this.fuel > 0) {
-            this.backwardFlame.lineStyle(10, 0xff3300, 0.8);
-            this.backwardFlame.beginPath();
-            this.backwardFlame.moveTo(rocketX, rocketY);
-            const flameEnd = new Phaser.Math.Vector2(
-                rocketX + direction.x * 30,
-                rocketY + direction.y * 30
-            );
-            this.backwardFlame.lineTo(flameEnd.x, flameEnd.y);
-            this.backwardFlame.strokePath();
+            const flameX = rocketX + direction.x * -46; // 距离火箭减小7%
+            const flameY = rocketY + direction.y * -46; // 距离火箭减小7%
+            
+            this.backwardFlame.setPosition(flameX, flameY);
+            this.backwardFlame.setRotation(Math.atan2(direction.y, direction.x)); // 反向火焰方向
+            this.backwardFlame.setScale(0.034138125); // 缩小70%
+            this.backwardFlame.visible = true;
+        } else {
+            this.backwardFlame.visible = false;
         }
         
         // 左向推进器火焰
         if (this.isThrustingLeft && this.fuel > 0) {
-            this.leftFlame.lineStyle(10, 0xff9933, 0.8);
-            this.leftFlame.beginPath();
-            this.leftFlame.moveTo(rocketX, rocketY);
-            const flameEnd = new Phaser.Math.Vector2(
-                rocketX - normalLeft.x * 25,
-                rocketY - normalLeft.y * 25
-            );
-            this.leftFlame.lineTo(flameEnd.x, flameEnd.y);
-            this.leftFlame.strokePath();
+            const flameX = rocketX - normalLeft.x * 43; // 距离飞船减小8%
+            const flameY = rocketY - normalLeft.y * 43; // 距离飞船减小8%
+            
+            this.leftFlame.setPosition(flameX, flameY);
+            this.leftFlame.setRotation(Math.atan2(normalLeft.y, normalLeft.x)); // 调整为从下向上喷火的方向
+            this.leftFlame.setScale(0.03213); // 缩小55%
+            this.leftFlame.visible = true;
+        } else {
+            this.leftFlame.visible = false;
         }
         
         // 右向推进器火焰
         if (this.isThrustingRight && this.fuel > 0) {
-            this.rightFlame.lineStyle(10, 0xff9933, 0.8);
-            this.rightFlame.beginPath();
-            this.rightFlame.moveTo(rocketX, rocketY);
-            const flameEnd = new Phaser.Math.Vector2(
-                rocketX - normalRight.x * 25,
-                rocketY - normalRight.y * 25
-            );
-            this.rightFlame.lineTo(flameEnd.x, flameEnd.y);
-            this.rightFlame.strokePath();
+            const flameX = rocketX - normalRight.x * 43; // 距离飞船减小8%
+            const flameY = rocketY - normalRight.y * 43; // 距离飞船减小8%
+            
+            this.rightFlame.setPosition(flameX, flameY);
+            this.rightFlame.setRotation(Math.atan2(normalRight.y, normalRight.x)); // 调整为从下向上喷火的方向
+            this.rightFlame.setScale(0.03213); // 缩小55%
+            this.rightFlame.visible = true;
+        } else {
+            this.rightFlame.visible = false;
+        }
+    }
+    
+    updateFireAnimation() {
+        // 更新火焰动画
+        this.fireTimer += this.scene.game.loop.delta;
+        
+        if (this.fireTimer >= this.fireFrameDuration) {
+            this.fireTimer = 0;
+            this.fireFrame = this.fireFrame === 1 ? 2 : 1;
+            
+            // 更新所有火焰的纹理
+            const fireTexture = this.fireFrame === 1 ? 'fire1' : 'fire2';
+            
+            if (this.forwardFlame) {
+                this.forwardFlame.setTexture(fireTexture);
+            }
+            if (this.backwardFlame) {
+                this.backwardFlame.setTexture(fireTexture);
+            }
+            if (this.leftFlame) {
+                this.leftFlame.setTexture(fireTexture);
+            }
+            if (this.rightFlame) {
+                this.rightFlame.setTexture(fireTexture);
+            }
         }
     }
 
     updateFuelDisplay() {
         // 更新燃料条和文本位置，使其始终位于飞船正上方
-        const fuelTextY = this.y - this.displayHeight/2 - 1;
-        const fuelBarY = this.y - this.displayHeight/2 + 8;
+        const fuelTextY = this.y - this.displayHeight/2 - 1.2; // 距离增加20%
+        const fuelBarY = this.y - this.displayHeight/2 + 9.6; // 距离增加20%
         const fuelX = this.x - 25; // 向左移动25px
         
         if (this.fuelText) {
