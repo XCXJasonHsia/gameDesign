@@ -8,6 +8,20 @@ export class Game extends Phaser.Scene {
         // 添加背景
         this.add.image(400, 300, 'bg');
         
+        // 创建过渡效果的黑色矩形
+        this.fadeRect = this.add.rectangle(400, 300, 800, 600, 0x000000);
+        this.fadeRect.setAlpha(1);
+        this.fadeRect.setDepth(1000);
+        this.fadeRect.setScrollFactor(0); // 不随相机移动
+        
+        // 黑出效果（场景进入时的淡出动画）
+        this.tweens.add({
+            targets: this.fadeRect,
+            alpha: 0,
+            duration: 300,
+            ease: 'Power2'
+        });
+        
         // 游戏标题
         const title = this.add.text(400, 150, 'blablabla', {
             fontSize: '48px',
@@ -76,11 +90,20 @@ export class Game extends Phaser.Scene {
                 ease: 'Power2',
                 yoyo: true,
                 onComplete: () => {
-                    // 切换到 Battle 场景
-                    this.scene.start('PreparationScene23', {
-                    fromScene: 'Game',
-                    previousState: this.previousState
-                });
+                    // 黑入效果
+                    this.tweens.add({
+                        targets: this.fadeRect,
+                        alpha: 1,
+                        duration: 300,
+                        ease: 'Power2',
+                        onComplete: () => {
+                            // 切换到 Battle 场景
+                            this.scene.start('PreparationScene23', {
+                                fromScene: 'Game',
+                                previousState: this.previousState
+                            });
+                        }
+                    });
                 }
             });
         });
@@ -135,28 +158,20 @@ export class Game extends Phaser.Scene {
                 ease: 'Power2',
                 yoyo: true,
                 onComplete: () => {
-                    // 切换到个人准备界面
-                    this.scene.start('SurfaceplayScene', {
-                    fromScene: 'Game',
-                    previousState: this.previousState
-                });
-                    /*
-                    // 暂时先显示提示信息，因为Adventure场景还没开发
-                    const warningText = this.add.text(400, 480, '冒险模式开发中...', {
-                        fontSize: '20px',
-                        fill: '#ff6666',
-                        backgroundColor: '#00000080',
-                        padding: { x: 10, y: 5 }
+                    // 黑入效果
+                    this.tweens.add({
+                        targets: this.fadeRect,
+                        alpha: 1,
+                        duration: 300,
+                        ease: 'Power2',
+                        onComplete: () => {
+                            // 切换到个人准备界面
+                            this.scene.start('SurfaceplayScene', {
+                                fromScene: 'Game',
+                                previousState: this.previousState
+                            });
+                        }
                     });
-                    warningText.setOrigin(0.5);
-                    
-                    // 3秒后消失
-                    this.time.delayedCall(3000, () => {
-                        warningText.destroy();
-                    });
-                    */
-                    // 或者直接跳转到Game场景作为占位
-                    // this.scene.start('Game');
                 }
             });
         });

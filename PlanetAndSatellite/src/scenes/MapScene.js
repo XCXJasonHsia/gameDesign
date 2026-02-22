@@ -13,6 +13,20 @@ export class MapScene extends Phaser.Scene {
         bg.setDepth(-100);
         bg.setScale(1);
         
+        // 创建过渡效果的黑色矩形
+        this.fadeRect = this.add.rectangle(centerX, centerY, this.cameras.main.width, this.cameras.main.height, 0x000000);
+        this.fadeRect.setAlpha(1);
+        this.fadeRect.setDepth(1000);
+        this.fadeRect.setScrollFactor(0); // 不随相机移动
+        
+        // 黑出效果（场景进入时的淡出动画）
+        this.tweens.add({
+            targets: this.fadeRect,
+            alpha: 0,
+            duration: 300,
+            ease: 'Power2'
+        });
+        
         // 创建标题
         const title = this.add.text(centerX, centerY - 200, '地图界面', {
             fontSize: '36px',
@@ -35,8 +49,17 @@ export class MapScene extends Phaser.Scene {
         
         // 按钮点击事件
         backButton.on('pointerdown', () => {
-            // 跳转到个人准备界面
-            this.scene.start('PreparationSceneEg', {});
+            // 黑入效果
+            this.tweens.add({
+                targets: this.fadeRect,
+                alpha: 1,
+                duration: 300,
+                ease: 'Power2',
+                onComplete: () => {
+                    // 跳转到个人准备界面
+                    this.scene.start('PreparationSceneEg', {});
+                }
+            });
         });
         
         // 按钮悬停效果
@@ -118,7 +141,16 @@ export class MapScene extends Phaser.Scene {
         
         // 键盘事件：按Enter键返回个人准备界面
         this.input.keyboard.on('keydown-ENTER', () => {
-            this.scene.start('PreparationSceneEg', {});
+            // 黑入效果
+            this.tweens.add({
+                targets: this.fadeRect,
+                alpha: 1,
+                duration: 300,
+                ease: 'Power2',
+                onComplete: () => {
+                    this.scene.start('PreparationSceneEg', {});
+                }
+            });
         });
     }
     

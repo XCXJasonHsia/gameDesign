@@ -386,12 +386,25 @@ export class GenericScene extends Phaser.Scene {
         // 移除当前场景中的暂停覆盖层（后备方案）
         this.removePauseOverlay();
         
-        this.scene.stop(this.sceneKeyUI);
-        // 启动个人准备界面场景，让Phaser自动处理场景切换
-        this.scene.start('PreparationSceneEg', {
-                    fromScene: this.sceneKey,
-                    previousState: this.previousState
-                });
+        // 使用UI场景的黑入效果
+        const uiSceneInstance = this.scene.get(this.sceneKeyUI);
+        if (uiSceneInstance && uiSceneInstance.fadeOut) {
+            uiSceneInstance.fadeOut(() => {
+                this.scene.stop(this.sceneKeyUI);
+                // 启动个人准备界面场景
+                this.scene.start('PreparationSceneEg', {
+                            fromScene: this.sceneKey,
+                            previousState: this.previousState
+                        });
+            });
+        } else {
+            // 后备方案：如果UI场景不存在，直接切换场景
+            this.scene.stop(this.sceneKeyUI);
+            this.scene.start('PreparationSceneEg', {
+                        fromScene: this.sceneKey,
+                        previousState: this.previousState
+                    });
+        }
     }
     
     // 显示暂停覆盖层
@@ -414,7 +427,7 @@ export class GenericScene extends Phaser.Scene {
             this.pauseOverlay.setScrollFactor(0); // 不随相机移动
             
             // 创建暂停文字
-            this.pauseText = this.add.text(cameraCenterX, cameraCenterY - 50, '游戏暂停', {
+            this.pauseText = this.add.text(cameraCenterX, cameraCenterY - 110, '游戏暂停', {
                 fontSize: '48px',
                 fill: '#ffffff',
                 stroke: '#000000',
@@ -427,7 +440,7 @@ export class GenericScene extends Phaser.Scene {
             this.pauseText.setScrollFactor(0); // 不随相机移动
             
             // 创建提示文字
-            this.instructionText = this.add.text(cameraCenterX, cameraCenterY + 20, '按ESC继续游戏', {
+            this.instructionText = this.add.text(cameraCenterX, cameraCenterY - 40, '按ESC继续游戏', {
                 fontSize: '20px',
                 fill: '#ffff00',
                 backgroundColor: '#00000080',
@@ -439,7 +452,7 @@ export class GenericScene extends Phaser.Scene {
             this.instructionText.setScrollFactor(0); // 不随相机移动
             
             // 创建回到个人准备界面提示文字
-            this.mainMenuText = this.add.text(cameraCenterX, cameraCenterY + 90, '按Enter回到个人准备界面', {
+            this.mainMenuText = this.add.text(cameraCenterX, cameraCenterY + 30, '按Enter回到个人准备界面', {
                 fontSize: '20px',
                 fill: '#ffff00',
                 backgroundColor: '#00000080',
@@ -584,6 +597,9 @@ export class GenericUIScene extends Phaser.Scene {
         // 创建UI层，确保UI在最上层但允许overlayer在其之上
         this.UILayer = this.add.layer();
         
+        // 创建过渡效果的黑色矩形
+        this.createFadeRect();
+        
         // 创建控制说明文本
         const defaultStyle = {
             fontSize: '16px',
@@ -619,6 +635,9 @@ export class GenericUIScene extends Phaser.Scene {
         
         // 创建能量状态显示
         this.createEnergyStateDisplay();
+        
+        // 执行黑出效果（场景进入时的淡出动画）
+        this.fadeIn();
     }
 
     // 创建冷却时间显示
@@ -850,5 +869,45 @@ export class GenericUIScene extends Phaser.Scene {
             textObj.setDepth(999);       // 确保在UILayer上
             this.UILayer.add(textObj);   // 添加到UI层
         });
+    }
+    
+    // 创建过渡效果的黑色矩形
+    createFadeRect() {
+        const centerX = this.cameras.main.width / 2;
+        const centerY = this.cameras.main.height / 2;
+        
+        // 创建过渡效果的黑色矩形
+        this.fadeRect = this.add.rectangle(centerX, centerY, this.cameras.main.width, this.cameras.main.height, 0x000000);
+        this.fadeRect.setAlpha(1);
+        this.fadeRect.setDepth(1000);
+        this.fadeRect.setScrollFactor(0); // 不随相机移动
+    }
+    
+    // 黑出效果（场景进入时的淡出动画）
+    fadeIn() {
+        if (this.fadeRect) {
+            this.tweens.add({
+                targets: this.fadeRect,
+                alpha: 0,
+                duration: 300,
+                ease: 'Power2'
+            });
+        }
+    }
+    
+    // 黑入效果（场景退出时的淡入动画）
+    fadeOut(callback) {
+        if (this.fadeRect) {
+            this.tweens.add({
+                targets: this.fadeRect,
+                alpha: 1,
+                duration: 300,
+                ease: 'Power2',
+                onComplete: callback
+            });
+        } else {
+            // 如果没有fadeRect，直接执行回调
+            if (callback) callback();
+        }
     }
 }
