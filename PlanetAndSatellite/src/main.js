@@ -14,6 +14,7 @@ import { PreparationScene23 } from './scenes/AdventureScenes/DualPlanetsScene/Pr
 import { SceneDualPlanets, UISceneDualPlanets } from './scenes/AdventureScenes/DualPlanetsScene/SceneDualPlanets.js';
 import { SurfaceplayScene } from './scenes/SurfaceScenes/Surfaceplay.js';
 import { MapScene } from './scenes/MapScene.js';
+import { RocketVideoScene } from './scenes/SurfaceScenes/RocketVideoScene.js';
 const config = {
     type: Phaser.WEBGL,
     width: 800,
@@ -53,7 +54,8 @@ const config = {
         PreparationScene23, 
         SceneDualPlanets, UISceneDualPlanets,
         SurfaceplayScene,
-        MapScene
+        MapScene,
+        RocketVideoScene
     ]
 };
 
