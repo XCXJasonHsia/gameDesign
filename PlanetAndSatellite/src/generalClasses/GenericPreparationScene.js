@@ -63,7 +63,7 @@ export class GenericPreparationScene extends Phaser.Scene {
         helpText.setOrigin(0.5);
         
         // 创建飞船图像
-        const rocket = this.add.image(centerX, centerY - 100, 'rocket');
+        const rocket = this.add.image(centerX, centerY - 135, 'rocket');
         rocket.setScale(0.1863);
         rocket.setInteractive();
         
@@ -78,7 +78,7 @@ export class GenericPreparationScene extends Phaser.Scene {
                 ease: 'Sine.easeInOut'
             },
             y: {
-                value: () => centerY - 100 + Phaser.Math.Between(-20, 20),
+                value: () => centerY - 135 + Phaser.Math.Between(-20, 20),
                 duration: 2500,
                 repeat: -1,
                 yoyo: true,
@@ -113,8 +113,48 @@ export class GenericPreparationScene extends Phaser.Scene {
                         duration: 300,
                         ease: 'Power2',
                         onComplete: () => {
-                            // 跳转到对应场景
-                            this.scene.start(this.sceneKeyGame, {});
+                            // 检查是否有选中的星星
+                            const selectedStarIndex = localStorage.getItem('selectedStarIndex');
+                            if (selectedStarIndex !== null) {
+                                // 根据选中的星星进入对应的关卡
+                                const index = parseInt(selectedStarIndex);
+                                switch (index) {
+                                    case 0: // 起源
+                                        this.scene.start('SceneEarth');
+                                        break;
+                                    case 1: // 广袤星带
+                                        this.scene.start('SceneLinkOfPlanets');
+                                        break;
+                                    case 2: // 绿洲星
+                                        this.scene.start('OasisScene');
+                                        break;
+                                    case 3: // 脉冲星
+                                        this.scene.start('ScenePulsar');
+                                        break;
+                                    case 4: // 余烬星
+                                        this.scene.start('AshesScene');
+                                        break;
+                                    case 5: // 双星
+                                        this.scene.start('SceneDualPlanets');
+                                        break;
+                                    case 6: // 神盾星
+                                        this.scene.start('AegisScene');
+                                        break;
+                                    case 7: // 故土星域
+                                        this.scene.start('TheOldHomeScene');
+                                        break;
+                                    case 8: // 终焉之洞
+                                        this.scene.start('OmegaScene');
+                                        break;
+                                    default:
+                                        // 如果没有选中的星星，进入默认场景
+                                        this.scene.start(this.sceneKeyGame, {});
+                                        break;
+                                }
+                            } else {
+                                // 如果没有选中的星星，进入默认场景
+                                this.scene.start(this.sceneKeyGame, {});
+                            }
                         }
                     });
                 }
@@ -198,8 +238,8 @@ export class GenericPreparationScene extends Phaser.Scene {
             });
         });
         
-        // 创建"地图"按钮
-        const mapButton = this.add.text(this.cameras.main.width - 20, this.cameras.main.height - 100, '地图', {
+        // 创建"星图"按钮
+        const mapButton = this.add.text(this.cameras.main.width - 20, this.cameras.main.height - 100, '星图', {
             fontSize: '18px',
             fill: '#ffffff',
             backgroundColor: '#333333',
@@ -252,7 +292,7 @@ export class GenericPreparationScene extends Phaser.Scene {
                         duration: 300,
                         ease: 'Power2',
                         onComplete: () => {
-                            // 跳转到地图界面
+                            // 跳转到星图界面
                             this.scene.start('MapScene', {});
                         }
                     });

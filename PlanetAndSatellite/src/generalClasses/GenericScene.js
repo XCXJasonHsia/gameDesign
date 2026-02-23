@@ -138,7 +138,7 @@ export class GenericScene extends Phaser.Scene {
     // 设置缩放控制
     setupZoomControls() {
         // 缩放范围
-        this.minZoom = 0.6;
+        this.minZoom = 0.42; // 原来的0.6减少30%
         this.maxZoom = 4;
         
         // 缩放步长（增大以获得更明显的变化）
@@ -844,7 +844,7 @@ export class GenericUIScene extends Phaser.Scene {
             '空格键: 增加推力',
             'R: 重置火箭位置', 
             'ESC: 暂停',
-            '+/-: 缩放地图'];
+            '+/-: 缩放星图'];
         this.instructions = instructions;
     }
     

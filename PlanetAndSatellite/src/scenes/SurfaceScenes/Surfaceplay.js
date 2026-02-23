@@ -1,31 +1,215 @@
 import { Player } from '../../PlayerObjects/Player/Player.js'
+import { NPC } from '../../PlayerObjects/NPC.js'
 
 export class SurfaceplayScene extends Phaser.Scene {
     constructor() {
         super('SurfaceplayScene');
-
+        this.isPaused = false;
+        this.pauseOverlay = null;
+        this.pauseText = null;
+        this.instructionText = null;
+        this.mainMenuText = null;
+        this.cameraZoom = 1;
+        this.cameraFollow = true;
+        this.videoPlayed = false; // 标记是否已经播放过视频
     }
 
     create() {
-        this.add.image(400, 300, 'sky');
+        // 创建五倍宽度的背景
+        const skyWidth = 800 * 5;
+        const sky = this.add.image(skyWidth / 2, 300, 'sky').setScale(5, 1);
         
         this.platforms = this.physics.add.staticGroup();
 
-        this.platforms.create(400,568,'ground').setScale(2).refreshBody();
-        this.platforms.create(600,400,'ground');
-        this.platforms.create(50,250,'ground');
-        this.platforms.create(750,150,'ground');
+        // 创5个平台相互拼接，每个平台宽度为400
+        for (let i = 0; i < 5; i++) {
+            const x =400 + i * 800;
+            this.platforms.create(x, 568, 'ground').setScale(2).refreshBody();
+        }
+        
+        // 添加一些平台
+        this.platforms.create(600, 400, 'ground');
+        this.platforms.create(750, 150, 'ground');
+        // 添加更多平台到右侧
+        this.platforms.create(1200, 300, 'ground');
+        this.platforms.create(1800, 450, 'ground');
+        this.platforms.create(2400, 200, 'ground');
+        this.platforms.create(3000, 350, 'ground');
+        this.platforms.create(3600, 250, 'ground');
 
-        this.player = new Player(this,100,450);
+        if (this.platforms) {
+            this.platforms.getChildren().forEach(platform => {
+                platform.setDepth(2);
+            });
+        }
+
+        this.player = new Player(this, 250, 510).setDepth(3);
+        if(this.videoPlayed === true) {
+            this.rockets = this.physics.add.staticGroup();
+            this.rockets.create(200, 490, 'broken_rocket').setScale(0.08).refreshBody().setDepth(1);
+        }
+        if (!this.videoPlayed) {
+            this.player.setVisible(false); // 初始时隐藏player
+            this.player.body.enable = false; // 初始时禁用物理体
+        } else {
+            this.player.setVisible(true); // 视频播放过，直接显示player
+            this.player.body.enable = true; // 启用物理体
+        }
         this.player.body.gravity.y = 1000;
-        this.physics.add.collider(this.player,this.platforms);
+        this.physics.add.collider(this.player, this.platforms);
         this.cursors = this.input.keyboard.createCursorKeys();
         
-        // Make camera follow the player
-        this.cameras.main.startFollow(this.player);
+        // 创建NPC
+        this.npcs = [];
+        this.npcs.push(new NPC(this, 1500, 450, '商人'));
+        this.npcs.push(new NPC(this, 2500, 450, '守卫'));
+        this.npcs.push(new NPC(this, 3500, 450, '智者'));
+        
+        // 添加NPC与平台的碰撞
+        for (const npc of this.npcs) {
+            this.physics.add.collider(npc, this.platforms);
+        }
+        
+        // 调整世界边界到背景大小
+        this.physics.world.setBounds(0, 0, skyWidth, 600);
+        
+        // 设置相机边界，确保相机不会拍摄超出背景的部分
+        this.cameras.main.setBounds(0, 0, skyWidth, 600);
+        
+        if (!this.videoPlayed) {
+            // 初始时将镜头固定，大小为1.0
+            this.cameras.main.setZoom(1.0);
+            this.cameras.main.stopFollow();
+            this.cameras.main.setScroll(0, 0);
+            
+            // 添加火箭
+            this.createRocket();
+        } else {
+            // 视频播放过，直接让相机跟随玩家
+            this.cameras.main.setZoom(1.0);
+            this.cameras.main.startFollow(this.player, true, 0.05, 0.05);
+        }
+        
+        // 设置玩家与NPC的重叠检测
+        for (const npc of this.npcs) {
+            this.physics.add.overlap(this.player, npc, () => {
+                npc.onPlayerNearby();
+            }, null, this);
+        }
+        
+        // 添加ESC键事件监听器用于暂停/继续游戏
+        this.input.keyboard.on('keydown-ESC', this.gamePause, this);
+        
+        // 添加相机缩放控制
+        this.setupCameraZoomControls();
+    }
+    
+    // 创建火箭
+    createRocket() {
+        // 计算火箭大小（宇航员高度的1.5倍左右）
+        // 宇航员高度约为48px，所以火箭高度约为72px
+        const rocketScale = 10 / 100; // 假设原始火箭图片高度为100px
+        
+        // 在画面左上方创建火箭
+        this.rocket = this.physics.add.image(200, -100, 'rocket');
+        this.rocket.setScale(rocketScale).refreshBody();
+        this.rocket.body.gravity.y = 1000;
+        
+        // 添加火箭与平台的碰撞
+        this.physics.add.collider(this.rocket, this.platforms, this.onRocketHitGround, null, this);
+    }
+    
+    // 火箭撞击地面的回调
+    onRocketHitGround(rocket, platform) {
+        // 记录当前火箭的位置（特别是y坐标）
+        const currentY = rocket.y;
+        
+        // 替换火箭图片为broken_rocket
+        rocket.setTexture('broken_rocket');
+        const resizeScale = 0.8;
+        rocket.setScale(rocket.scaleX * resizeScale, rocket.scaleY * resizeScale); // 保持相同的缩放比例
+        rocket.refreshBody(); // 刷新物理体
+        
+        // 调整位置，确保底部与地面接触
+        rocket.y = currentY + 48;
+        
+        // 停止火箭的物理运动
+        rocket.body.setVelocity(0, 0);
+        rocket.body.enable = false;
+        
+        // 计算相机需要的缩放比例，使brokenrocket撑满整个屏幕
+        const screenWidth = this.cameras.main.width;
+        const screenHeight = this.cameras.main.height;
+        const rocketWidth = rocket.width * rocket.scaleX;
+        const rocketHeight = rocket.height * rocket.scaleY;
+        const scaleX = screenWidth / rocketWidth * 0.6;
+        const scaleY = screenHeight / rocketHeight * 0.6;
+        const finalScale = Math.max(scaleX, scaleY);
+        
+        // 使用tween实现相机平滑移动和缩放
+        this.tweens.add({
+            targets: this.cameras.main,
+            scrollX: rocket.x - screenWidth / 2,
+            scrollY: rocket.y - screenHeight / 2,
+            zoom: finalScale,
+            duration: 1500, // 1.5秒动画
+            ease: 'Power2.easeOut',
+            onComplete: () => {
+                // 捕获当前相机视野和地面信息
+                const cameraInfo = {
+                    scrollX: this.cameras.main.scrollX,
+                    scrollY: this.cameras.main.scrollY,
+                    zoom: this.cameras.main.zoom,
+                    width: this.cameras.main.width,
+                    height: this.cameras.main.height
+                };
+                
+                // 动画完成后，启动RocketVideoScene并传递参数
+                this.videoPlayed = true; // 标记视频已播放
+                // this.scene.start('RocketVideoScene');
+                this.scene.start('RocketVideoScene', { cameraInfo: cameraInfo });
+            }
+        });
     }
 
-    update() {
+    // 设置相机缩放控制
+    setupCameraZoomControls() {
+        // 监听+键（等号键）放大
+        this.input.keyboard.on('keydown-PLUS', this.zoomIn, this);
+        this.input.keyboard.on('keydown-EQUALS', this.zoomIn, this);
+        
+        // 监听-键缩小
+        this.input.keyboard.on('keydown-MINUS', this.zoomOut, this);
+        
+        // 监听0键重置缩放
+        this.input.keyboard.on('keydown-ZERO', this.resetZoom, this);
+    }
+
+    // 相机放大
+    zoomIn() {
+        if (this.cameraZoom < 2) {
+            this.cameraZoom += 0.1;
+            this.cameras.main.setZoom(this.cameraZoom);
+        }
+    }
+
+    // 相机缩小
+    zoomOut() {
+        if (this.cameraZoom > 0.5) {
+            this.cameraZoom -= 0.1;
+            this.cameras.main.setZoom(this.cameraZoom);
+        }
+    }
+
+    // 重置相机缩放
+    resetZoom() {
+        this.cameraZoom = 1;
+        this.cameras.main.setZoom(this.cameraZoom);
+    }
+
+    update(time, delta) {
+        if (this.isPaused) return;
+        
         if(this.cursors.left.isDown)
         {
             this.player.moveleft();
@@ -43,8 +227,181 @@ export class SurfaceplayScene extends Phaser.Scene {
         {
             this.player.jump();
         }
+        
+        // 更新所有NPC
+        if (this.npcs) {
+            for (const npc of this.npcs) {
+                npc.update(time, delta);
+                
+                // 检测玩家是否离开NPC范围
+                const distance = Phaser.Math.Distance.Between(
+                    this.player.x, this.player.y, 
+                    npc.x, npc.y
+                );
+                if (distance > 100) {
+                    npc.onPlayerLeave();
+                }
+            }
+        }
     }
 
+    gamePause() {
+        this.isPaused = !this.isPaused;
+        
+        if (this.isPaused) {
+            this.onPause();
+        } else {
+            this.onResume();
+        }
+        
+        console.log(`游戏已${this.isPaused ? '暂停' : '继续'}`);
+    }
+
+    // 暂停时的处理
+    onPause() {
+        // 暂停物理世界
+        this.physics.world.pause();
+        
+        // 暂停所有tweens（动画）
+        this.tweens.pauseAll();
+        
+        // 显示暂停界面
+        this.showPauseOverlay();
+        
+        // 添加Enter键监听，用于回到主界面
+        this.input.keyboard.once('keydown-ENTER', this.goToMainMenu, this);
+    }
+
+    // 恢复时的处理
+    onResume() {
+        // 恢复物理世界
+        this.physics.world.resume();
+        
+        // 恢复所有tweens（动画）
+        this.tweens.resumeAll();
+        
+        // 移除暂停覆盖层
+        this.removePauseOverlay();
+    }
+
+    // 回到个人准备界面
+    goToMainMenu() {
+        // 移除暂停覆盖层
+        this.removePauseOverlay();
+        
+        // 启动个人准备界面场景
+        this.scene.start('PreparationSceneEg', {
+                    fromScene: 'SurfaceplayScene'
+                });
+    }
+
+    // 显示暂停覆盖层
+    showPauseOverlay() {
+        // 获取屏幕尺寸
+        const screenWidth = this.cameras.main.width;
+        const screenHeight = this.cameras.main.height;
+        const screenCenterX = screenWidth / 2;
+        const screenCenterY = screenHeight / 2;
+        
+        // 创建半透明黑色覆盖层
+        this.pauseOverlay = this.add.rectangle(screenCenterX, screenCenterY, screenWidth, screenHeight, 0x000000, 0.5);
+        this.pauseOverlay.setDepth(1000);
+        this.pauseOverlay.setScrollFactor(0); // 不随相机移动
+        
+        // 创建暂停文字
+        this.pauseText = this.add.text(screenCenterX, screenCenterY - 50, '游戏暂停', {
+            fontSize: '48px',
+            fill: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 4,
+            fontFamily: 'Arial, sans-serif',
+            padding: { x: 10, y: 10 }
+        });
+        this.pauseText.setOrigin(0.5);
+        this.pauseText.setDepth(1001);
+        this.pauseText.setScrollFactor(0); // 不随相机移动
+        
+        // 创建提示文字
+        this.instructionText = this.add.text(screenCenterX, screenCenterY + 20, '按ESC继续游戏', {
+            fontSize: '20px',
+            fill: '#ffff00',
+            backgroundColor: '#00000080',
+            padding: { x: 10, y: 10 },
+            fontFamily: 'Arial, sans-serif'
+        });
+        this.instructionText.setOrigin(0.5);
+        this.instructionText.setDepth(1001);
+        this.instructionText.setScrollFactor(0); // 不随相机移动
+        
+        // 创建回到主菜单的提示
+        this.mainMenuText = this.add.text(screenCenterX, screenCenterY + 60, '按ENTER回到主菜单', {
+            fontSize: '20px',
+            fill: '#ffff00',
+            backgroundColor: '#00000080',
+            padding: { x: 10, y: 10 },
+            fontFamily: 'Arial, sans-serif'
+        });
+        this.mainMenuText.setOrigin(0.5);
+        this.mainMenuText.setDepth(1001);
+        this.mainMenuText.setScrollFactor(0); // 不随相机移动
+    }
+
+    // 移除暂停覆盖层
+    removePauseOverlay() {
+        if (this.pauseOverlay) {
+            this.pauseOverlay.destroy();
+            this.pauseOverlay = null;
+        }
+        if (this.pauseText) {
+            this.pauseText.destroy();
+            this.pauseText = null;
+        }
+        if (this.instructionText) {
+            this.instructionText.destroy();
+            this.instructionText = null;
+        }
+        if (this.mainMenuText) {
+            this.mainMenuText.destroy();
+            this.mainMenuText = null;
+        }
+    }
+
+    // 清理资源
+    destroy() {
+        // 移除暂停覆盖层
+        this.removePauseOverlay();
+        
+        // 清理火箭
+        if (this.rocket) {
+            this.rocket.destroy();
+            this.rocket = null;
+        }
+        
+        // 清理NPC
+        if (this.npcs) {
+            for (const npc of this.npcs) {
+                npc.destroy();
+            }
+            this.npcs = [];
+        }
+        
+        // 移除键盘事件监听器
+        if (this.input && this.input.keyboard) {
+            this.input.keyboard.off('keydown-ESC', this.gamePause, this);
+            this.input.keyboard.off('keydown-ENTER', this.goToMainMenu, this);
+            this.input.keyboard.off('keydown-C');
+            // 移除缩放相关的事件监听器
+            if (this.cameraFollow) {
+                this.input.keyboard.off('keydown-PLUS');
+                this.input.keyboard.off('keydown-EQUALS');
+                this.input.keyboard.off('keydown-MINUS');
+                this.input.keyboard.off('keydown-ZERO');
+            }
+        }
+        
+        // 调用父类的destroy方法
+        super.destroy();
+    }
         
     gameOver() {
         

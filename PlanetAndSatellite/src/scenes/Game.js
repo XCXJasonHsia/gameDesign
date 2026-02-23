@@ -41,7 +41,7 @@ export class Game extends Phaser.Scene {
         subtitle.setOrigin(0.5);
         
         // 创建 Battle 按钮
-        const battleButton = this.add.text(400, 320, 'DualPlanets', {
+        const battleButton = this.add.text(400, 320, 'brokenRocket', {
             fontSize: '32px',
             fill: '#ffffff',
             backgroundColor: '#333333',
@@ -97,8 +97,8 @@ export class Game extends Phaser.Scene {
                         duration: 300,
                         ease: 'Power2',
                         onComplete: () => {
-                            // 切换到 Battle 场景
-                            this.scene.start('PreparationScene23', {
+                            // 切换到个人准备页面
+                            this.scene.start('PreparationSceneEg', {
                                 fromScene: 'Game',
                                 previousState: this.previousState
                             });

@@ -27,11 +27,16 @@ export class Preloader extends Phaser.Scene {
         this.load.setPath('assets');
         this.load.image('bg', 'bg.png');
         this.load.image('bg2', 'bg2.png');
+        this.load.image('bg11', 'bg11.png');
+        this.load.image('pulse', 'pulse.png');
+        this.load.image('pulse_planet', 'pulse/pulse.png');
+        this.load.image('pulse_flag', 'pulse/pulse_flag.png');
         this.load.image('bg_prepare.png', 'bg_prepare.png');
         this.load.image('star', 'star.png');
         this.load.image('cartoon_moon', 'cartoon_moon.png');
         this.load.image('cartoon_rocket', 'cartoon_rocket.png');
         this.load.image('rocket', 'rocket.png');
+        this.load.image('broken_rocket', 'broken_rocket.png');
         this.load.image('cartoon_earth', 'cartoon_earth.png');
         this.load.image('scene1earth', 'EarthSceneAssets/scene1earth.png');
         this.load.image('scene1moon', 'EarthSceneAssets/scene1moon.png');
@@ -54,10 +59,26 @@ export class Preloader extends Phaser.Scene {
             {frameWidth : 455, frameHeight : 607}
         );
         this.load.spritesheet(
+            'dude_',
+            'SurfacePlaySceneAssets/dude_.png',
+            {frameWidth : 32, frameHeight : 48}
+        );
+        this.load.spritesheet(
             'planet_angry_spriteSheet', 
             'planet_angry_spriteSheet.png',
             {frameWidth: 481, frameHeight: 500}
             )
+        
+        // 加载 broken_rocket_video_png 中的所有图片（按49到5的顺序）
+        const frameFiles = [];
+        for (let i = 49; i >= 5; i--) {
+            frameFiles.push(`${i}.png`);
+        }
+        
+        for (let i = 0; i < frameFiles.length; i++) {
+            const frameNum = (i + 1).toString().padStart(3, '0');
+            this.load.image(`rocket_frame_${frameNum}`, `broken_rocket_video_png/${frameFiles[i]}`);
+        }
     }
 
     create() {
