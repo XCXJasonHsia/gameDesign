@@ -126,7 +126,7 @@ export class GenericPreparationScene extends Phaser.Scene {
                                         this.scene.start('SceneLinkOfPlanets');
                                         break;
                                     case 2: // 绿洲星
-                                        this.scene.start('OasisScene');
+                                        this.scene.start('SceneLivable');
                                         break;
                                     case 3: // 脉冲星
                                         this.scene.start('ScenePulsar');

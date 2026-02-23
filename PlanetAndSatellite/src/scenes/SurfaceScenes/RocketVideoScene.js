@@ -11,6 +11,11 @@ export class RocketVideoScene extends Phaser.Scene {
     }
 
     init(data) {
+        // 重置所有动画相关的状态变量，确保每次进入场景都能从头开始播放动画
+        this.currentFrame = 1;
+        this.frameImage = null;
+        this.frameTimer = null;
+        
         // 处理从SurfaceplayScene传递过来的参数
         if (data) {
             this.cameraInfo = data.cameraInfo;
@@ -119,7 +124,7 @@ export class RocketVideoScene extends Phaser.Scene {
                 ease: 'Power2.easeOut',
                 onComplete: () => {
                     // 动画完成后，回到SurfaceplayScene
-                    this.scene.start('SurfaceplayScene');
+                    this.scene.start('SurfaceplayScene', {videoPlayed: true});
                 }
             });
         }

@@ -109,7 +109,7 @@ export class Game extends Phaser.Scene {
         });
         
         // 创建 Adventure 按钮
-        const adventureButton = this.add.text(400, 400, 'SurfaceplayScene', {
+        const adventureButton = this.add.text(400, 400, 'SceneLivable', {
             fontSize: '32px',
             fill: '#ffffff',
             backgroundColor: '#333333',
@@ -166,7 +166,7 @@ export class Game extends Phaser.Scene {
                         ease: 'Power2',
                         onComplete: () => {
                             // 切换到个人准备界面
-                            this.scene.start('SurfaceplayScene', {
+                            this.scene.start('SceneLivable', {
                                 fromScene: 'Game',
                                 previousState: this.previousState
                             });

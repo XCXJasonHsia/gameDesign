@@ -12,6 +12,7 @@ import { PreparationScene12 } from './scenes/AdventureScenes/PlanetLinkScene/Pre
 import { SceneLinkOfPlanets, UISceneLinkOfPlanets } from './scenes/AdventureScenes/PlanetLinkScene/SceneLinkOfPlanets.js';
 import { PreparationScene23 } from './scenes/AdventureScenes/DualPlanetsScene/PreparationScene23.js';
 import { SceneDualPlanets, UISceneDualPlanets } from './scenes/AdventureScenes/DualPlanetsScene/SceneDualPlanets.js';
+import { SceneLivable, UISceneLivable } from './scenes/AdventureScenes/LivableScene/SceneLivable.js';
 import { SurfaceplayScene } from './scenes/SurfaceScenes/Surfaceplay.js';
 import { MapScene } from './scenes/MapScene.js';
 import { GuideScene } from './scenes/GuideScene.js';
@@ -54,6 +55,7 @@ const config = {
         SceneLinkOfPlanets, UISceneLinkOfPlanets, 
         PreparationScene23, 
         SceneDualPlanets, UISceneDualPlanets,
+        SceneLivable, UISceneLivable, 
         SurfaceplayScene,
         MapScene,
         GuideScene,

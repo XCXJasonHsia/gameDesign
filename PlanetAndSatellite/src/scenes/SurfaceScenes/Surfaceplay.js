@@ -14,6 +14,26 @@ export class SurfaceplayScene extends Phaser.Scene {
         this.videoPlayed = false; // 标记是否已经播放过视频
     }
 
+    // 场景初始化方法，每次进入场景时都会调用
+    init(data) {
+        // 重置所有状态变量
+        this.isPaused = false;
+        this.pauseOverlay = null;
+        this.pauseText = null;
+        this.instructionText = null;
+        this.mainMenuText = null;
+        this.cameraZoom = 1;
+        this.cameraFollow = true;
+        // 从参数中获取videoPlayed状态，如果没有提供则默认为false
+        this.videoPlayed = data && data.videoPlayed !== undefined ? data.videoPlayed : false;
+        this.player = null;
+        this.npcs = [];
+        this.platforms = null;
+        this.rocket = null;
+        this.rockets = null;
+        this.cursors = null;
+    }
+
     create() {
         // 创建五倍宽度的背景
         const skyWidth = 800 * 5;
@@ -165,8 +185,6 @@ export class SurfaceplayScene extends Phaser.Scene {
                 };
                 
                 // 动画完成后，启动RocketVideoScene并传递参数
-                this.videoPlayed = true; // 标记视频已播放
-                // this.scene.start('RocketVideoScene');
                 this.scene.start('RocketVideoScene', { cameraInfo: cameraInfo });
             }
         });
