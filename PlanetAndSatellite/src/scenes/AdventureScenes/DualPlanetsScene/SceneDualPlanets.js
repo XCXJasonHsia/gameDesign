@@ -37,7 +37,7 @@ export class SceneDualPlanets extends GenericScene {
         bg.setScale(2); // 背景图片放大x倍
         
         // 设置初始相机缩放
-        this.cameras.main.setZoom(0.9); // 设置相机缩放值（原来的0.4 + 0.5）
+        this.cameras.main.setZoom(0.72); // 设置相机缩放值为0.72（原来的0.9减少20%）
     }
 
     showSuccessAreaOverlay() {

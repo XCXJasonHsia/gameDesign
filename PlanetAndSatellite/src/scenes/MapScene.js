@@ -13,8 +13,22 @@ export class MapScene extends Phaser.Scene {
         bg.setDepth(-100);
         bg.setScale(1);
         
+        // 创建过渡效果的黑色矩形
+        this.fadeRect = this.add.rectangle(centerX, centerY, this.cameras.main.width, this.cameras.main.height, 0x000000);
+        this.fadeRect.setAlpha(1);
+        this.fadeRect.setDepth(1000);
+        this.fadeRect.setScrollFactor(0); // 不随相机移动
+        
+        // 黑出效果（场景进入时的淡出动画）
+        this.tweens.add({
+            targets: this.fadeRect,
+            alpha: 0,
+            duration: 300,
+            ease: 'Power2'
+        });
+        
         // 创建标题
-        const title = this.add.text(centerX, centerY - 200, '地图界面', {
+        const title = this.add.text(centerX, centerY - 200, '星图', {
             fontSize: '36px',
             fill: '#ffffff',
             stroke: '#000000',
@@ -24,7 +38,7 @@ export class MapScene extends Phaser.Scene {
         title.setOrigin(0.5);
         
         // 创建返回按钮
-        const backButton = this.add.text(50, 30, '离开地图', {
+        const backButton = this.add.text(50, 30, '离开星图', {
             fontSize: '24px',
             fill: '#ffffff',
             backgroundColor: '#00000080',
@@ -35,8 +49,17 @@ export class MapScene extends Phaser.Scene {
         
         // 按钮点击事件
         backButton.on('pointerdown', () => {
-            // 跳转到个人准备界面
-            this.scene.start('PreparationSceneEg', {});
+            // 黑入效果
+            this.tweens.add({
+                targets: this.fadeRect,
+                alpha: 1,
+                duration: 300,
+                ease: 'Power2',
+                onComplete: () => {
+                    // 跳转到个人准备界面
+                    this.scene.start('PreparationSceneEg', {});
+                }
+            });
         });
         
         // 按钮悬停效果
@@ -59,28 +82,47 @@ export class MapScene extends Phaser.Scene {
         this.selectedPoint = null;
         this.greenCircle = null;
         
-        // 生成12个星座点的位置（更无序）
+        // 生成9个星座点的位置（分散不规则）
         const pointPositions = [
-            { x: 150, y: 220 },
-            { x: 280, y: 180 },
-            { x: 350, y: 270 },
-            { x: 520, y: 190 },
-            { x: 650, y: 230 },
-            { x: 180, y: 430 },
-            { x: 220, y: 380 },
-            { x: 440, y: 420 },
-            { x: 580, y: 320 },
-            { x: 690, y: 390 },
-            { x: 290, y: 480 },
-            { x: 510, y: 520 }
+            { x: 175, y: 285 }, // 起源（向下移动15px，向右移动25px）
+            { x: 300, y: 215 }, // 广袤星带（向下移动25px，然后所有星星向下移动50px）
+            { x: 450, y: 270 }, // 绿洲星（所有星星向下移动50px）
+            { x: 580, y: 230 }, // 脉冲星（所有星星向下移动50px）
+            { x: 680, y: 330 }, // 余烬星（所有星星向下移动50px）
+            { x: 660, y: 430 }, // 双星（所有星星向下移动50px）
+            { x: 480, y: 470 }, // 神盾星（所有星星向下移动50px）
+            { x: 330, y: 490 }, // 故土星域（所有星星向下移动50px）
+            { x: 200, y: 400 }  // 终焉之洞（所有星星向下移动50px）
         ];
         
-        // 创建12个白色的点
+        // 星星名称
+        const pointNames = [
+            '起源',
+            '广袤星带',
+            '绿洲星',
+            '脉冲星',
+            '余烬星',
+            '双星',
+            '神盾星',
+            '故土星域',
+            '终焉之洞'
+        ];
+        
+        // 创建9个白色的点
         for (let i = 0; i < pointPositions.length; i++) {
             const pos = pointPositions[i];
             const point = this.add.circle(pos.x, pos.y, 5, 0xffffff);
             point.setInteractive({ cursor: 'pointer' });
             point.index = i; // 保存点的索引
+            
+            // 添加白色文字标签（在星星上方）
+            const text = this.add.text(pos.x, pos.y - 15, pointNames[i], {
+                fontSize: '16px',
+                fill: '#ffffff',
+                stroke: '#000000',
+                strokeThickness: 2
+            });
+            text.setOrigin(0.5);
             
             // 添加点击事件
             point.on('pointerdown', () => {
@@ -118,7 +160,16 @@ export class MapScene extends Phaser.Scene {
         
         // 键盘事件：按Enter键返回个人准备界面
         this.input.keyboard.on('keydown-ENTER', () => {
-            this.scene.start('PreparationSceneEg', {});
+            // 黑入效果
+            this.tweens.add({
+                targets: this.fadeRect,
+                alpha: 1,
+                duration: 300,
+                ease: 'Power2',
+                onComplete: () => {
+                    this.scene.start('PreparationSceneEg', {});
+                }
+            });
         });
     }
     
@@ -142,6 +193,12 @@ export class MapScene extends Phaser.Scene {
         
         // 保存选中点的信息
         this.saveSelectedPoint(point);
+        
+        // 保存选中点的索引到localStorage，用于后续进入对应的关卡
+        localStorage.setItem('selectedStarIndex', point.index.toString());
+        
+        // 星图只起到记录位置的作用，点击星星后不退出星图界面
+        // 保持星图的正常显示
     }
     
     // 保存选中点的信息

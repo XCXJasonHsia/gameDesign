@@ -2,7 +2,7 @@ import { Boot } from './scenes/Boot.js';
 import { Game } from './scenes/Game.js';
 import { GameOver } from './scenes/GameOver.js';
 import { Preloader } from './scenes/Preloader.js';
-import { Adventure } from './scenes/Adventure.js';
+import { Adventure, OasisScene, AshesScene, AegisScene, TheOldHomeScene, OmegaScene, ScenePulsar, UIScenePulsar } from './scenes/Adventure.js';
 import { Battle } from './scenes/Battle.js';
 import { PreparationSceneEg } from './Demonstration/PreparationSceneEg.js';
 import { SceneEg, UISceneEg } from './Demonstration/SceneEg.js';
@@ -14,6 +14,7 @@ import { PreparationScene23 } from './scenes/AdventureScenes/DualPlanetsScene/Pr
 import { SceneDualPlanets, UISceneDualPlanets } from './scenes/AdventureScenes/DualPlanetsScene/SceneDualPlanets.js';
 import { SurfaceplayScene } from './scenes/SurfaceScenes/Surfaceplay.js';
 import { MapScene } from './scenes/MapScene.js';
+import { GuideScene } from './scenes/GuideScene.js';
 import { RocketVideoScene } from './scenes/SurfaceScenes/RocketVideoScene.js';
 const config = {
     type: Phaser.WEBGL,
@@ -55,7 +56,14 @@ const config = {
         SceneDualPlanets, UISceneDualPlanets,
         SurfaceplayScene,
         MapScene,
-        RocketVideoScene
+        GuideScene,
+        RocketVideoScene,
+        OasisScene,
+        ScenePulsar, UIScenePulsar,
+        AshesScene,
+        AegisScene,
+        TheOldHomeScene,
+        OmegaScene
     ]
 };
 

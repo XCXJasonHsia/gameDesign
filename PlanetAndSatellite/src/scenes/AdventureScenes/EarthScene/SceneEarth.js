@@ -27,7 +27,7 @@ export class SceneEarth extends GenericScene {
         bg.setScale(1); // 背景图片放大一倍（原来的50%）
         
         // 设置初始相机缩放
-        this.cameras.main.setZoom(1.4); // 设置相机缩放值为1.4（原来的0.9 + 0.5）
+        this.cameras.main.setZoom(1.12); // 设置相机缩放值为1.12（原来的1.4减少20%）
     }
 
     showSuccessAreaOverlay() {
@@ -247,7 +247,35 @@ export class SceneEarth extends GenericScene {
         const uiScene = this.scene.get('UISceneEarth');
         if (uiScene) {
             
-            uiScene.collapseMessageText = null;
+            // 销毁碰撞提示语
+            if (uiScene.collisionHintText) {
+                uiScene.collisionHintText.destroy();
+                uiScene.collisionHintText = null;
+            }
+            
+            // 销毁地球崩塌提示语
+            if (uiScene.collapseMessageText) {
+                uiScene.collapseMessageText.destroy();
+                uiScene.collapseMessageText = null;
+            }
+            
+            // 销毁教程文本
+            if (uiScene.tutorialText) {
+                uiScene.tutorialText.destroy();
+                uiScene.tutorialText = null;
+            }
+            
+            // 销毁冷却提示语
+            if (uiScene.cooldownTutorialText) {
+                uiScene.cooldownTutorialText.destroy();
+                uiScene.cooldownTutorialText = null;
+            }
+            
+            // 销毁最终提示语
+            if (uiScene.finalMessageText) {
+                uiScene.finalMessageText.destroy();
+                uiScene.finalMessageText = null;
+            }
             
             // 移除所有覆盖层
             if (uiScene.overlays && uiScene.overlays.length > 0) {
@@ -278,8 +306,8 @@ export class UISceneEarth extends GenericUIScene {
             { key: 'D', text: '按 D 向右喷气' },
             { key: 'A', text: '按 A 向左喷气' },
             { key: 'SPACE', text: '按空格+W/S/A/D增加推力' },
-            { key: 'PLUS', text: '按 + 放大地图' },
-            { key: 'MINUS', text: '按 - 缩小地图' }
+            { key: 'PLUS', text: '按 + 放大星图' },
+            { key: 'MINUS', text: '按 - 缩小星图' }
         ];
         this.mainScene = null; // 稍后在 create 方法中初始化
     }
@@ -602,6 +630,12 @@ export class UISceneEarth extends GenericUIScene {
     }
     
     showEarthCollapseMessage() {
+        // 确保之前的提示信息已经被销毁
+        if (this.collapseMessageText) {
+            this.collapseMessageText.destroy();
+            this.collapseMessageText = null;
+        }
+        
         // 创建提示信息
         this.collapseMessageText = this.add.text(
             this.cameras.main.width / 2,
@@ -684,6 +718,12 @@ export class UISceneEarth extends GenericUIScene {
                 overlay.destroy();
             });
             this.overlays = [];
+        }
+        
+        // 移除成功文本
+        if (this.successText) {
+            this.successText.destroy();
+            this.successText = null;
         }
         
         // 调用父类的destroy方法

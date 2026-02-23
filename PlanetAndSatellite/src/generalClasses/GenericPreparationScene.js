@@ -4,7 +4,7 @@ export class GenericPreparationScene extends Phaser.Scene {
         this.sceneKeyGame = sceneKeyGame;
     }
     
-    create() {
+    create(data) {
         // 设置背景
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
@@ -13,6 +13,33 @@ export class GenericPreparationScene extends Phaser.Scene {
         const bg = this.add.image(centerX, centerY, 'bg_prepare.png');
         bg.setDepth(-100);
         bg.setScale(1);
+        
+        // 检查是否需要过渡效果
+        const shouldFade = data && data.noFade ? false : true;
+        
+        if (shouldFade) {
+            // 创建过渡效果的黑色矩形
+            this.fadeRect = this.add.rectangle(centerX, centerY, this.cameras.main.width, this.cameras.main.height, 0x000000);
+            this.fadeRect.setAlpha(1);
+            this.fadeRect.setDepth(1000);
+            this.fadeRect.setScrollFactor(0); // 不随相机移动
+            
+            // 黑出效果（场景进入时的淡出动画）
+            this.tweens.add({
+                targets: this.fadeRect,
+                alpha: 0,
+                duration: 300,
+                ease: 'Power2'
+            });
+        }
+        
+        // 确保fadeRect存在，用于后续的黑入效果
+        if (!this.fadeRect) {
+            this.fadeRect = this.add.rectangle(centerX, centerY, this.cameras.main.width, this.cameras.main.height, 0x000000);
+            this.fadeRect.setAlpha(0);
+            this.fadeRect.setDepth(1000);
+            this.fadeRect.setScrollFactor(0); // 不随相机移动
+        }
         
         // 创建标题
         const title = this.add.text(centerX, centerY - 210, '个人准备界面', {
@@ -36,7 +63,7 @@ export class GenericPreparationScene extends Phaser.Scene {
         helpText.setOrigin(0.5);
         
         // 创建飞船图像
-        const rocket = this.add.image(centerX, centerY - 100, 'rocket');
+        const rocket = this.add.image(centerX, centerY - 135, 'rocket');
         rocket.setScale(0.1863);
         rocket.setInteractive();
         
@@ -51,7 +78,7 @@ export class GenericPreparationScene extends Phaser.Scene {
                 ease: 'Sine.easeInOut'
             },
             y: {
-                value: () => centerY - 100 + Phaser.Math.Between(-20, 20),
+                value: () => centerY - 135 + Phaser.Math.Between(-20, 20),
                 duration: 2500,
                 repeat: -1,
                 yoyo: true,
@@ -79,8 +106,57 @@ export class GenericPreparationScene extends Phaser.Scene {
                 duration: 300,
                 ease: 'Power2',
                 onComplete: () => {
-                    // 跳转到对应场景
-                    this.scene.start(this.sceneKeyGame, {});
+                    // 黑入效果
+                    this.tweens.add({
+                        targets: this.fadeRect,
+                        alpha: 1,
+                        duration: 300,
+                        ease: 'Power2',
+                        onComplete: () => {
+                            // 检查是否有选中的星星
+                            const selectedStarIndex = localStorage.getItem('selectedStarIndex');
+                            if (selectedStarIndex !== null) {
+                                // 根据选中的星星进入对应的关卡
+                                const index = parseInt(selectedStarIndex);
+                                switch (index) {
+                                    case 0: // 起源
+                                        this.scene.start('SceneEarth');
+                                        break;
+                                    case 1: // 广袤星带
+                                        this.scene.start('SceneLinkOfPlanets');
+                                        break;
+                                    case 2: // 绿洲星
+                                        this.scene.start('OasisScene');
+                                        break;
+                                    case 3: // 脉冲星
+                                        this.scene.start('ScenePulsar');
+                                        break;
+                                    case 4: // 余烬星
+                                        this.scene.start('AshesScene');
+                                        break;
+                                    case 5: // 双星
+                                        this.scene.start('SceneDualPlanets');
+                                        break;
+                                    case 6: // 神盾星
+                                        this.scene.start('AegisScene');
+                                        break;
+                                    case 7: // 故土星域
+                                        this.scene.start('TheOldHomeScene');
+                                        break;
+                                    case 8: // 终焉之洞
+                                        this.scene.start('OmegaScene');
+                                        break;
+                                    default:
+                                        // 如果没有选中的星星，进入默认场景
+                                        this.scene.start(this.sceneKeyGame, {});
+                                        break;
+                                }
+                            } else {
+                                // 如果没有选中的星星，进入默认场景
+                                this.scene.start(this.sceneKeyGame, {});
+                            }
+                        }
+                    });
                 }
             });
         });
@@ -109,8 +185,61 @@ export class GenericPreparationScene extends Phaser.Scene {
         
 
         
-        // 创建"地图"按钮
-        const mapButton = this.add.text(this.cameras.main.width - 20, this.cameras.main.height - 100, '地图', {
+        // 创建"游戏指南"按钮
+        const guideButton = this.add.text(this.cameras.main.width - 20, this.cameras.main.height - 150, '游戏指南', {
+            fontSize: '18px',
+            fill: '#ffffff',
+            backgroundColor: '#333333',
+            padding: { x: 17, y: 8 }
+        });
+        guideButton.setOrigin(1, 0);
+        guideButton.setInteractive();
+        
+        // 按钮悬停效果
+        guideButton.on('pointerover', () => {
+            guideButton.setStyle({ 
+                fill: '#99ff99',
+                backgroundColor: '#444444'
+            });
+            this.tweens.add({
+                targets: guideButton,
+                scale: 1.1,
+                duration: 200,
+                ease: 'Power2'
+            });
+        });
+        
+        guideButton.on('pointerout', () => {
+            guideButton.setStyle({ 
+                fill: '#ffffff',
+                backgroundColor: '#333333'
+            });
+            this.tweens.add({
+                targets: guideButton,
+                scale: 1,
+                duration: 200,
+                ease: 'Power2'
+            });
+        });
+        
+        // 按钮点击事件
+        guideButton.on('pointerdown', () => {
+            // 按钮点击动画
+            this.tweens.add({
+                targets: guideButton,
+                scale: 0.9,
+                duration: 100,
+                ease: 'Power2',
+                yoyo: true,
+                onComplete: () => {
+                    // 直接跳转到游戏指南界面，不需要过渡效果
+                    this.scene.start('GuideScene', {});
+                }
+            });
+        });
+        
+        // 创建"星图"按钮
+        const mapButton = this.add.text(this.cameras.main.width - 20, this.cameras.main.height - 100, '星图', {
             fontSize: '18px',
             fill: '#ffffff',
             backgroundColor: '#333333',
@@ -156,8 +285,17 @@ export class GenericPreparationScene extends Phaser.Scene {
                 ease: 'Power2',
                 yoyo: true,
                 onComplete: () => {
-                    // 跳转到地图界面
-                    this.scene.start('MapScene', {});
+                    // 黑入效果
+                    this.tweens.add({
+                        targets: this.fadeRect,
+                        alpha: 1,
+                        duration: 300,
+                        ease: 'Power2',
+                        onComplete: () => {
+                            // 跳转到星图界面
+                            this.scene.start('MapScene', {});
+                        }
+                    });
                 }
             });
         });
@@ -209,7 +347,44 @@ export class GenericPreparationScene extends Phaser.Scene {
                 ease: 'Power2',
                 yoyo: true,
                 onComplete: () => {
-                    // 跳转到主界面
+                    // 黑入效果
+                    this.tweens.add({
+                        targets: this.fadeRect,
+                        alpha: 1,
+                        duration: 300,
+                        ease: 'Power2',
+                        onComplete: () => {
+                            // 跳转到主界面
+                            this.scene.start('Game', {});
+                        }
+                    });
+                }
+            });
+        });
+        
+        // 添加"目前所在星球："文字
+        // 先创建背景矩形
+        const planetBg = this.add.rectangle(20, this.cameras.main.height - 155, 185, 100, 0x000000, 0.5);
+        planetBg.setStrokeStyle(2, 0xffffff, 0.8);
+        planetBg.setOrigin(0, 0);
+        
+        // 再添加文字
+        const planetText = this.add.text(30, this.cameras.main.height - 145, '目前所在星球：', {
+            fontSize: '25px',
+            fill: '#ffffff',
+            fontFamily: 'Arial, sans-serif'
+        });
+        planetText.setOrigin(0, 0);
+        
+        // 键盘事件：按Enter键返回主界面
+        this.input.keyboard.on('keydown-ENTER', () => {
+            // 黑入效果
+            this.tweens.add({
+                targets: this.fadeRect,
+                alpha: 1,
+                duration: 300,
+                ease: 'Power2',
+                onComplete: () => {
                     this.scene.start('Game', {});
                 }
             });

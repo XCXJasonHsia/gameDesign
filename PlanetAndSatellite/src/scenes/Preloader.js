@@ -27,6 +27,10 @@ export class Preloader extends Phaser.Scene {
         this.load.setPath('assets');
         this.load.image('bg', 'bg.png');
         this.load.image('bg2', 'bg2.png');
+        this.load.image('bg11', 'bg11.png');
+        this.load.image('pulse', 'pulse.png');
+        this.load.image('pulse_planet', 'pulse/pulse.png');
+        this.load.image('pulse_flag', 'pulse/pulse_flag.png');
         this.load.image('bg_prepare.png', 'bg_prepare.png');
         this.load.image('star', 'star.png');
         this.load.image('cartoon_moon', 'cartoon_moon.png');

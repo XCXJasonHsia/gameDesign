@@ -27,7 +27,7 @@ export class SceneLinkOfPlanets extends GenericScene {
         bg.setScale(5); // 背景图片放大x倍（原来的50%）
         
         // 设置初始相机缩放
-        this.cameras.main.setZoom(1.5); // 设置相机缩放值为1.5（原来的1.0 + 0.5）
+        this.cameras.main.setZoom(1.2); // 设置相机缩放值为1.2（原来的1.5减少20%）
     }
 
     showSuccessAreaOverlay() {
