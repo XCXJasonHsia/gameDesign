@@ -13,8 +13,187 @@ export class ScenePulsar extends GenericScene {
         const uiScene = this.scene.get('UIScenePulsar');
         this.uiScene = uiScene;
 
+        // 初始化光环数组
+        this.halos = [];
+        // 开始生成光环
+        this.startGeneratingHalos();
+        
+        // 闪屏效果将在UI场景中生成，不需要在主场景中初始化
+
         // 现在初始化完成，再显示成功区域覆盖层
         this.showSuccessAreaOverlay();
+    }
+
+    // 开始生成光环
+    startGeneratingHalos() {
+        console.log('开始生成光环');
+        
+        // 定义一个函数来生成光环并调度下一次生成
+        const scheduleNextHalo = () => {
+            console.log('触发光环生成');
+            this.generateHalo();
+            
+            // 随机延迟后再次生成光环，频率调整，延长上限时间间隔
+            const nextDelay = Phaser.Math.Between(240, 2250); // 下限保持不变，上限延长到1.8倍
+            console.log('调度下一次光环生成，延迟:', nextDelay, 'ms');
+            this.time.delayedCall(nextDelay, scheduleNextHalo, [], this);
+        };
+        
+        // 立即生成第一个光环
+        this.generateHalo();
+        
+        // 调度下一次光环生成，频率增加
+        const initialDelay = 850; // 初始延迟缩短到0.5倍
+        console.log('调度下一次光环生成，初始延迟:', initialDelay, 'ms');
+        this.time.delayedCall(initialDelay, scheduleNextHalo, [], this);
+    }
+    
+    // 开始生成闪屏效果
+    startGeneratingFlashes() {
+        console.log('开始生成闪屏效果');
+        
+        // 定义第一个生成机制的函数（频率降低50%，闪屏大小上限增加30%，下限升高40%）
+        const scheduleNextFlash1 = () => {
+            console.log('触发光屏生成（机制1）');
+            this.generateFlash(35, 364); // 下限升高40%，上限增加30%
+            
+            // 随机延迟后再次生成闪屏，频率增加到现在的160%
+            const nextDelay = Phaser.Math.Between(109, 547); // 175-875ms 增加到现在的160%
+            console.log('调度下一次闪屏生成（机制1），延迟:', nextDelay, 'ms');
+            this.time.delayedCall(nextDelay, scheduleNextFlash1, [], this);
+        };
+        
+        // 定义第二个生成机制的函数（频率增加60%，闪屏大小上限降低20%，下限降低40%）
+        const scheduleNextFlash2 = () => {
+            console.log('触发光屏生成（机制2）');
+            this.generateFlash(4, 40); // 下限降低40%，上限降低20%
+            
+            // 随机延迟后再次生成闪屏，频率降低到现在的50%
+            const nextDelay = Phaser.Math.Between(52, 262); // 26-131ms 降低到现在的50%
+            console.log('调度下一次闪屏生成（机制2），延迟:', nextDelay, 'ms');
+            this.time.delayedCall(nextDelay, scheduleNextFlash2, [], this);
+        };
+        
+        // 立即生成第一个闪屏
+        this.generateFlash(35, 364);
+        
+        // 调度第一个生成机制
+        const initialDelay1 = Phaser.Math.Between(109, 547); // 增加到现在的160%
+        console.log('调度下一次闪屏生成（机制1），初始延迟:', initialDelay1, 'ms');
+        this.time.delayedCall(initialDelay1, scheduleNextFlash1, [], this);
+        
+        // 调度第二个生成机制
+        const initialDelay2 = Phaser.Math.Between(52, 262); // 降低到现在的50%
+        console.log('调度下一次闪屏生成（机制2），初始延迟:', initialDelay2, 'ms');
+        this.time.delayedCall(initialDelay2, scheduleNextFlash2, [], this);
+    }
+    
+    // 生成闪屏效果
+    generateFlash(minSize = 25, maxSize = 280) {
+        // 随机位置
+        const screenWidth = this.cameras.main.width;
+        const screenHeight = this.cameras.main.height;
+        const x = Phaser.Math.Between(0, screenWidth);
+        const y = Phaser.Math.Between(0, screenHeight);
+        
+        // 随机大小（有范围）
+        const size = Phaser.Math.Between(minSize, maxSize);
+        
+        // 随机持续时间（0.1-0.7s之间，上限延长40%）
+        const duration = Phaser.Math.FloatBetween(0.1, 0.7) * 1000; // 转换为毫秒
+        
+        console.log('生成闪屏效果，位置:', x, y, '大小:', size, '持续时间:', duration, 'ms');
+        
+        // 创建闪屏精灵
+        const flash = this.add.sprite(x, y, 'flash_1');
+        flash.setScale(size / flash.width);
+        flash.setDepth(50); // 设置在最上层
+        
+        // 添加到闪屏数组
+        this.flashes.push(flash);
+        console.log('闪屏已添加到数组，当前闪屏数量:', this.flashes.length);
+        
+        // 快速随机切换帧以达到闪屏效果
+        let elapsedTime = 0;
+        const frameChangeInterval = 50; // 每50ms切换一次帧
+        const fadeStartTime = 50; // 至少持续0.05秒之后再开始减弱
+        
+        const frameChangeEvent = this.time.addEvent({
+            delay: frameChangeInterval,
+            callback: () => {
+                // 随机切换帧
+                const randomFrame = Phaser.Math.Between(1, 10);
+                flash.setTexture(`flash_${randomFrame}`);
+                
+                // 更新经过的时间
+                elapsedTime += frameChangeInterval;
+                
+                // 至少持续0.05秒之后再开始减弱
+                if (elapsedTime >= fadeStartTime) {
+                    // 计算剩余时间比例，逐渐降低不透明度
+                    const remainingRatio = 1 - ((elapsedTime - fadeStartTime) / (duration - fadeStartTime));
+                    flash.setAlpha(0.8 * remainingRatio);
+                }
+                
+                // 如果超过持续时间，销毁闪屏
+                if (elapsedTime >= duration) {
+                    frameChangeEvent.remove();
+                    this.removeFlash(flash);
+                }
+            },
+            callbackScope: this,
+            loop: true
+        });
+    }
+    
+    // 移除闪屏效果
+    removeFlash(flash) {
+        // 从数组中移除闪屏
+        const index = this.flashes.indexOf(flash);
+        if (index !== -1) {
+            this.flashes.splice(index, 1);
+            console.log('闪屏已销毁，剩余闪屏数量:', this.flashes.length);
+        }
+        
+        // 销毁闪屏精灵
+        flash.destroy();
+    }
+
+    // 生成光环
+    generateHalo() {
+        const planet = this.planets[0];
+        if (!planet) {
+            console.log('没有行星，无法生成光环');
+            return;
+        }
+
+        console.log('生成光环，行星位置:', planet.x, planet.y);
+        
+        // 创建一个白色的圆形作为光环，使用行星在游戏世界中的位置
+        const halo = this.add.circle(planet.x, planet.y, 100, 0xffffff, 0.384); // 初始不透明度减小40%
+        halo.setDepth(10); // 设置在行星之上以便调试
+        
+        // 添加到光环数组
+        this.halos.push(halo);
+        console.log('光环已添加到数组，当前光环数量:', this.halos.length);
+
+        // 光环外扩散动画
+        this.tweens.add({
+            targets: halo,
+            radius: 4000, // 调整最终半径到4000
+            alpha: 0,
+            duration: 3000, // 保持动画持续时间不变
+            ease: 'Linear',
+            onComplete: () => {
+                // 动画完成后从数组中移除并销毁光环
+                const index = this.halos.indexOf(halo);
+                if (index !== -1) {
+                    this.halos.splice(index, 1);
+                    console.log('光环已销毁，剩余光环数量:', this.halos.length);
+                }
+                halo.destroy();
+            }
+        });
     }
     
     setupZoomControls() {
@@ -84,7 +263,7 @@ export class ScenePulsar extends GenericScene {
         this.initialPlanetPositions.push({x: centerX, y: centerY});
         
         // 创建pulse行星，设置适当的半径和质量以确保它具有吸引力
-        const pulsePlanet = new PlanetPulse(this, centerX, centerY, 'pulse_planet', 150, 10000);
+        const pulsePlanet = new PlanetPulse(this, centerX, centerY, 'pulse_planet', 144, false, 10000); // 半径减小40%
         this.planets.push(pulsePlanet);
     }
 
@@ -93,7 +272,7 @@ export class ScenePulsar extends GenericScene {
     }
 
     initializeRocket() {
-        const height = 100;
+        const height = 2000;
         this.initialRocketPosition = null;
         
         // 先销毁旧的火箭实例，避免图像残留
@@ -103,7 +282,7 @@ export class ScenePulsar extends GenericScene {
         }
         
         // 在屏幕左侧创建火箭，距离脉冲行星足够远
-        this.initialRocketPosition = {x: this.centerX - 600, y: this.centerY};
+        this.initialRocketPosition = {x: this.centerX - height, y: this.centerY};
         this.rocket = new RocketPulse(this, this.initialRocketPosition.x, 
             this.initialRocketPosition.y, 'cartoon_rocket', this.planets, false, 30, this.gravitySystem, true, false);
         
@@ -126,7 +305,7 @@ export class ScenePulsar extends GenericScene {
         if (!this.leader || this.planets.length === 0) return;
         
         // 定义边界距离（从行星中心算起）
-        const maxDistance = 2000;
+        const maxDistance = 2500;
         
         // 计算火箭到行星的距离
         const dx = this.leader.x - this.planets[0].x;
@@ -145,6 +324,72 @@ export class ScenePulsar extends GenericScene {
         if(this.isPaused === true) return;
         super.update(time, delta);
         this.ifSuccess();
+        
+        // 更新光环位置，确保它们跟随行星移动
+        const planet = this.planets[0];
+        if (planet) {
+            // 直接使用行星在游戏世界中的位置
+            this.halos.forEach(halo => {
+                halo.setPosition(planet.x, planet.y);
+            });
+            
+            // 检测飞船与光环的碰撞
+            this.checkHaloCollisions();
+        }
+    }
+    
+    // 检测飞船与光环的碰撞
+    checkHaloCollisions() {
+        if (!this.leader) return;
+        
+        const planet = this.planets[0];
+        if (!planet) return;
+        
+        // 遍历所有光环
+        this.halos.forEach(halo => {
+            // 计算飞船到光环中心的距离
+            const dx = this.leader.x - halo.x;
+            const dy = this.leader.y - halo.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            // 计算碰撞半径（飞船半径 + 光环当前半径）
+            const rocketRadius = this.leader.radius || (this.leader.displayWidth / 2);
+            const haloRadius = halo.radius;
+            
+            // 检查是否碰撞
+            if (distance < rocketRadius + haloRadius) {
+                console.log('飞船与光环碰撞，距离:', distance, '飞船半径:', rocketRadius, '光环半径:', haloRadius);
+                // 计算并应用向外的冲量
+                this.applyHaloImpulse(planet);
+            }
+        });
+    }
+    
+    // 应用光环冲量
+    applyHaloImpulse(planet) {
+        if (!this.leader) return;
+        
+        // 计算飞船到行星的距离
+        const dx = this.leader.x - planet.x;
+        const dy = this.leader.y - planet.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // 计算单位向量（向外方向）
+        const unitX = dx / distance;
+        const unitY = dy / distance;
+        
+        // 计算冲量大小，与距离成反比
+        // 距离越小，冲量越大
+        const baseImpulse = 24; // 冲量大小，调整到现在的1.4倍
+        const impulse = baseImpulse / Math.pow(distance / 100, 2); // 提高反比的程度，距离越小冲量增长越快
+        
+        console.log('应用光环冲量，距离:', distance, '冲量大小:', impulse);
+        
+        // 直接应用瞬时冲量，不使用持续冲量
+        // 由于使用的是Verlet积分，我们直接修改位置，模拟速度变化
+        const dt = 1 / 60; // 假设60fps
+        this.leader.position.x += unitX * impulse * dt;
+        this.leader.position.y += unitY * impulse * dt;
     }
 
     ifSuccess() {
@@ -179,6 +424,8 @@ export class UIScenePulsar extends GenericUIScene {
     constructor() {
         super('UIScenePulsar');
         this.mainScene = null; // 稍后在 create 方法中初始化
+        this.gravityArrow = null; // 指向引力中心的箭头
+        this.flashes = []; // 闪屏效果数组
     }
 
     create() {
@@ -186,6 +433,242 @@ export class UIScenePulsar extends GenericUIScene {
         
         // 初始化主场景引用
         this.mainScene = this.scene.get('ScenePulsar');
+        
+        // 创建指向引力中心的箭头
+        this.createGravityArrow();
+        
+        // 开始生成闪屏效果
+        this.startGeneratingFlashes();
+    }
+
+    // 创建指向引力中心的箭头
+    createGravityArrow() {
+        const screenWidth = this.cameras.main.width;
+        const screenHeight = this.cameras.main.height;
+        
+        // 创建箭头图像
+        this.gravityArrow = this.add.image(screenWidth / 2, screenHeight / 2, 'arrow');
+        this.gravityArrow.setScrollFactor(0); // 不随相机移动
+        this.gravityArrow.setDepth(1000); // 确保在UI层上，设置更高的深度
+        this.gravityArrow.setScale(0.2); // 缩小箭头60%
+        this.gravityArrow.visible = true; // 初始可见
+        console.log('Arrow created at:', screenWidth / 2, screenHeight / 2);
+        console.log('Arrow scale:', this.gravityArrow.scale);
+        console.log('Arrow depth:', this.gravityArrow.depth);
+        console.log('Arrow visible:', this.gravityArrow.visible);
+    }
+    
+    // 开始生成闪屏效果
+    startGeneratingFlashes() {
+        console.log('开始生成闪屏效果');
+        
+        // 定义第一个生成机制的函数（频率降低50%，闪屏大小上限增加30%，下限升高40%）
+        const scheduleNextFlash1 = () => {
+            console.log('触发光屏生成（机制1）');
+            this.generateFlash(35, 364); // 下限升高40%，上限增加30%
+            
+            // 随机延迟后再次生成闪屏，频率增加到现在的160%
+            const nextDelay = Phaser.Math.Between(109, 547); // 175-875ms 增加到现在的160%
+            console.log('调度下一次闪屏生成（机制1），延迟:', nextDelay, 'ms');
+            this.time.delayedCall(nextDelay, scheduleNextFlash1, [], this);
+        };
+        
+        // 定义第二个生成机制的函数（频率增加60%，闪屏大小上限降低20%，下限降低40%）
+        const scheduleNextFlash2 = () => {
+            console.log('触发光屏生成（机制2）');
+            this.generateFlash(4, 40); // 下限降低40%，上限降低20%
+            
+            // 随机延迟后再次生成闪屏，频率降低到现在的50%
+            const nextDelay = Phaser.Math.Between(52, 262); // 26-131ms 降低到现在的50%
+            console.log('调度下一次闪屏生成（机制2），延迟:', nextDelay, 'ms');
+            this.time.delayedCall(nextDelay, scheduleNextFlash2, [], this);
+        };
+        
+        // 立即生成第一个闪屏
+        this.generateFlash(35, 364);
+        
+        // 调度第一个生成机制
+        const initialDelay1 = Phaser.Math.Between(109, 547); // 增加到现在的160%
+        console.log('调度下一次闪屏生成（机制1），初始延迟:', initialDelay1, 'ms');
+        this.time.delayedCall(initialDelay1, scheduleNextFlash1, [], this);
+        
+        // 调度第二个生成机制
+        const initialDelay2 = Phaser.Math.Between(52, 262); // 降低到现在的50%
+        console.log('调度下一次闪屏生成（机制2），初始延迟:', initialDelay2, 'ms');
+        this.time.delayedCall(initialDelay2, scheduleNextFlash2, [], this);
+    }
+    
+    // 生成闪屏效果
+    generateFlash(minSize = 25, maxSize = 280) {
+        // 随机位置
+        const screenWidth = this.cameras.main.width;
+        const screenHeight = this.cameras.main.height;
+        const x = Phaser.Math.Between(0, screenWidth);
+        const y = Phaser.Math.Between(0, screenHeight);
+        
+        // 随机大小（有范围）
+        const size = Phaser.Math.Between(minSize, maxSize);
+        
+        // 随机持续时间（0.05-1.12s之间，上限延长40%）
+        const duration = Phaser.Math.FloatBetween(0.05, 1.12) * 1000; // 转换为毫秒
+        
+        // 随机色调调整（0-360度）
+        const hue = Phaser.Math.Between(0, 360);
+        
+        // 随机饱和度调整（0-100%）
+        const saturation = Phaser.Math.Between(0, 100);
+        
+        // 随机亮度调整（0.7-1.0之间，确保闪屏足够亮）
+        const lightness = Phaser.Math.FloatBetween(0.7, 1.0);
+        
+        // 随机旋转角度（0度，90度，180度，270度）
+        const rotationAngles = [0, Math.PI/2, Math.PI, 3*Math.PI/2];
+        const rotation = rotationAngles[Phaser.Math.Between(0, 3)];
+        
+        console.log('生成闪屏效果，位置:', x, y, '大小:', size, '持续时间:', duration, 'ms', '色调:', hue, '饱和度:', saturation, '亮度:', lightness, '旋转角度:', rotation);
+        
+        // 创建闪屏精灵
+        const flash = this.add.sprite(x, y, 'flash_1');
+        flash.setScale(size / flash.width);
+        flash.setScrollFactor(0); // 不随相机移动
+        flash.setDepth(999); // 设置在UI层上，但在箭头之下
+        
+        // 添加边缘虚化效果（使用 Phaser 3 兼容的方式）
+        // 注意：在某些 Phaser 3 版本中，滤镜的使用方式可能不同
+        // 这里我们使用 alpha 渐变来模拟边缘虚化效果
+        flash.setAlpha(0.8); // 稍微降低透明度，使边缘看起来更柔和
+        
+        // 应用随机旋转
+        flash.setRotation(rotation);
+        
+        // 应用随机色调、饱和度和亮度调整
+        // 在Phaser 3中，我们可以使用tint属性来调整颜色
+        // 首先将RGB颜色转换为HSL，调整后再转换回RGB
+        // 这里我们使用一个简化的方法，通过随机tint值来实现颜色变化
+        const randomTint = Phaser.Display.Color.HSLToColor(hue, saturation/100, lightness).color;
+        flash.setTint(randomTint);
+        
+        // 添加到闪屏数组
+        this.flashes.push(flash);
+        console.log('闪屏已添加到数组，当前闪屏数量:', this.flashes.length);
+        
+        // 快速随机切换帧以达到闪屏效果
+        let elapsedTime = 0;
+        const frameChangeInterval = 50; // 每50ms切换一次帧
+        const fadeStartTime = 50; // 至少持续0.05秒之后再开始减弱
+        
+        const frameChangeEvent = this.time.addEvent({
+            delay: frameChangeInterval,
+            callback: () => {
+                // 随机切换帧
+                const randomFrame = Phaser.Math.Between(1, 10);
+                flash.setTexture(`flash_${randomFrame}`);
+                
+                // 重新应用色调和饱和度调整到新帧
+                flash.setTint(randomTint);
+                
+                // 更新经过的时间
+                elapsedTime += frameChangeInterval;
+                
+                // 至少持续0.05秒之后再开始减弱
+                if (elapsedTime >= fadeStartTime) {
+                    // 计算剩余时间比例，逐渐降低不透明度
+                    const remainingRatio = 1 - ((elapsedTime - fadeStartTime) / (duration - fadeStartTime));
+                    flash.setAlpha(0.8 * remainingRatio);
+                }
+                
+                // 如果超过持续时间，销毁闪屏
+                if (elapsedTime >= duration) {
+                    frameChangeEvent.remove();
+                    this.removeFlash(flash);
+                }
+            },
+            callbackScope: this,
+            loop: true
+        });
+    }
+    
+    // 移除闪屏效果
+    removeFlash(flash) {
+        // 从数组中移除闪屏
+        const index = this.flashes.indexOf(flash);
+        if (index !== -1) {
+            this.flashes.splice(index, 1);
+            console.log('闪屏已销毁，剩余闪屏数量:', this.flashes.length);
+        }
+        
+        // 销毁闪屏精灵
+        flash.destroy();
+    }
+
+    // 更新箭头位置和方向
+    updateArrowPosition() {
+        if (!this.mainScene || !this.mainScene.leader || this.mainScene.planets.length === 0) {
+            if (this.gravityArrow) {
+                this.gravityArrow.visible = false;
+                console.log('Arrow hidden: missing mainScene, leader, or planets');
+            }
+            return;
+        }
+        
+        const screenWidth = this.cameras.main.width;
+        const screenHeight = this.cameras.main.height;
+        const screenCenterX = screenWidth / 2;
+        const screenCenterY = screenHeight / 2;
+        
+        // 获取相机当前缩放级别
+        const cameraZoom = this.mainScene.cameras.main.zoom;
+        
+        // 获取火箭位置
+        const rocketX = this.mainScene.leader.x;
+        const rocketY = this.mainScene.leader.y;
+        
+        // 获取引力中心位置（脉冲行星）
+        const gravityCenterX = this.mainScene.planets[0].x;
+        const gravityCenterY = this.mainScene.planets[0].y;
+        
+        // 计算从火箭到引力中心的向量
+        const dx = gravityCenterX - rocketX;
+        const dy = gravityCenterY - rocketY;
+        
+        // 计算向量长度
+        const length = Math.sqrt(dx * dx + dy * dy);
+        
+        // 计算单位向量
+        const unitX = dx / length;
+        const unitY = dy / length;
+        
+        // 只调整箭头大小，保持半径不变
+        const baseRadius = 260;
+        const baseScale = 0.2;
+        const radius = baseRadius; // 保持半径不变
+        const arrowScale = baseScale * cameraZoom; // 箭头大小随相机缩放调整
+        
+        // 计算箭头在以屏幕中心为圆心的圆周上的位置
+        const arrowX = screenCenterX + unitX * radius;
+        const arrowY = screenCenterY + unitY * radius;
+        
+        // 更新箭头位置
+        this.gravityArrow.setPosition(arrowX, arrowY);
+        
+        // 更新箭头大小
+        this.gravityArrow.setScale(arrowScale);
+        
+        // 计算箭头的旋转角度（弧度）
+        const angle = Math.atan2(dy, dx);
+        
+        // 更新箭头旋转角度
+        this.gravityArrow.setRotation(angle);
+        
+        // 确保箭头可见
+        this.gravityArrow.visible = true;
+        console.log('Arrow updated: position=', arrowX, arrowY, 'rotation=', angle, 'scale=', arrowScale, 'radius=', radius, 'cameraZoom=', cameraZoom);
+    }
+
+    // 重写update方法，更新箭头位置和方向
+    update(time, delta) {
+        super.update(time, delta);
+        this.updateArrowPosition();
     }
 
     showSuccessAreaOverlay() {

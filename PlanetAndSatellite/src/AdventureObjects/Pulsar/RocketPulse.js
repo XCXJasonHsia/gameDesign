@@ -74,7 +74,7 @@ export class RocketPulse extends GenericRocket {
             tangent.normalize();
             
             // 设置初始速度
-            this.initialVelocity = tangent.scale(orbitalSpeed);
+            this.initialVelocity = tangent.scale(orbitalSpeed*0.4);
             console.log('initialSpeed = ', this.initialVelocity);
         } catch(error) {
             console.error('RocketPulse:initializeVelocity failed.');

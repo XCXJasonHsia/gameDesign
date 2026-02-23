@@ -36,6 +36,7 @@ export class Preloader extends Phaser.Scene {
         this.load.image('cartoon_rocket', 'cartoon_rocket.png');
         this.load.image('rocket', 'rocket.png');
         this.load.image('broken_rocket', 'broken_rocket.png');
+        this.load.image('arrow', 'arrow.png');
         this.load.image('cartoon_earth', 'cartoon_earth.png');
         this.load.image('scene1earth', 'EarthSceneAssets/scene1earth.png');
         this.load.image('scene1moon', 'EarthSceneAssets/scene1moon.png');
@@ -82,6 +83,11 @@ export class Preloader extends Phaser.Scene {
         for (let i = 0; i < frameFiles.length; i++) {
             const frameNum = (i + 1).toString().padStart(3, '0');
             this.load.image(`rocket_frame_${frameNum}`, `broken_rocket_video_png/${frameFiles[i]}`);
+        }
+        
+        // 加载脉冲星闪屏动画的10帧图片
+        for (let i = 1; i <= 10; i++) {
+            this.load.image(`flash_${i}`, `pulse/flash/1 (${i}).png`);
         }
     }
 
