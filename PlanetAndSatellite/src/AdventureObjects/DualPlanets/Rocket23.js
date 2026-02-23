@@ -75,7 +75,7 @@ export class Rocket23 extends GenericRocket {
             
             // 设置初始速度
             this.initialVelocity = tangent.scale(orbitalSpeed);
-            console.log('initialSpeed = ', this.orbitalSpeed);
+            console.log('initialSpeed = ', this.initialVelocity);
         } catch(error) {
             console.error('Satellite:initializeVelocity failed.');
         }

@@ -1,6 +1,6 @@
-import { Rocket23 } from '../../../AdventureObjects/DualPlanets/Rocket23.js';
+import { RocketPulse } from '../../../AdventureObjects/Pulsar/RocketPulse.js';
+import { PlanetPulse } from '../../../AdventureObjects/Pulsar/PlanetPulse.js';
 import { GenericScene, GenericUIScene } from '../../../generalClasses/GenericScene.js';
-import { GenericPlanet } from '../../../generalClasses/GenericPlanet.js';
 import { GravitySystem } from '../../../Engines/GravitySystem.js';
 
 export class ScenePulsar extends GenericScene {
@@ -84,7 +84,7 @@ export class ScenePulsar extends GenericScene {
         this.initialPlanetPositions.push({x: centerX, y: centerY});
         
         // 创建pulse行星，设置适当的半径和质量以确保它具有吸引力
-        const pulsePlanet = new GenericPlanet(this, centerX, centerY, 'pulse_planet', 150, 10000);
+        const pulsePlanet = new PlanetPulse(this, centerX, centerY, 'pulse_planet', 150, 10000);
         this.planets.push(pulsePlanet);
     }
 
@@ -104,7 +104,7 @@ export class ScenePulsar extends GenericScene {
         
         // 在屏幕左侧创建火箭，距离脉冲行星足够远
         this.initialRocketPosition = {x: this.centerX - 600, y: this.centerY};
-        this.rocket = new Rocket23(this, this.initialRocketPosition.x, 
+        this.rocket = new RocketPulse(this, this.initialRocketPosition.x, 
             this.initialRocketPosition.y, 'cartoon_rocket', this.planets, false, 30, this.gravitySystem, true, false);
         
         // 设置火箭为leader，以便相机能够跟随它
@@ -114,6 +114,11 @@ export class ScenePulsar extends GenericScene {
         if (this.rocket && this.planets.length > 0) {
             // 初始化飞船速度，使其能够围绕脉冲行星做轨道运动
             this.rocket.initializeVelocity();
+            
+            // 手动设置火箭的初始速度，确保它有足够的速度开始运动
+            if (this.rocket.body) {
+                this.rocket.body.setVelocity(200, 0);
+            }
         }
     }
 
