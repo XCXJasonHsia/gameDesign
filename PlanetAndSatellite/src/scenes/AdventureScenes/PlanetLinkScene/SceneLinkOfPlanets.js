@@ -99,10 +99,10 @@ export class SceneLinkOfPlanets extends GenericScene {
         }
         
         if(this.planets.length > 0) {
-            const planet = this.planets[0];
+            const planet = this.planets[3];
             const distanceFromCenter = planet.radius + height;
-            this.initialRocketPosition = {x: this.initialPlanetPositions[0].x, 
-                                                y: this.initialPlanetPositions[0].y - distanceFromCenter};
+            this.initialRocketPosition = {x: this.initialPlanetPositions[3].x, 
+                                                y: this.initialPlanetPositions[3].y - distanceFromCenter};
             this.rocket = new Rocket12(this, this.initialRocketPosition.x, 
                 this.initialRocketPosition.y, 'cartoon_rocket', this.planets, false, 30, this.gravitySystem, true, false);
         }

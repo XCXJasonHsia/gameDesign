@@ -246,9 +246,8 @@ export class GenericRocket extends GenericSatellite {
         // 开始喷气或持续喷气
         if (canThrust && isAnyThrustKeyDown) {
             // 无论是否刚开始喷气，都先更新推进器状态
-            // 调整按键映射：按w向后喷火，按s向前喷火，按a向右喷火，按d向左喷火
-            this.isThrustingForward = this.controlKeys.down.isDown; // s键向前喷火
-            this.isThrustingBackward = this.controlKeys.up.isDown; // w键向后喷火
+            this.isThrustingForward = this.controlKeys.up.isDown; 
+            this.isThrustingBackward = this.controlKeys.down.isDown; 
             this.isThrustingLeft = this.controlKeys.right.isDown; // d键向左喷火
             this.isThrustingRight = this.controlKeys.left.isDown; // a键向右喷火
             
@@ -375,7 +374,7 @@ export class GenericRocket extends GenericSatellite {
         this.updateFireAnimation();
         
         // 前向推进器火焰
-        if (this.isThrustingForward && this.fuel > 0) {
+        if (this.isThrustingBackward && this.fuel > 0) {
             const flameX = rocketX - direction.x * -46; // 距离火箭减小7%
             const flameY = rocketY - direction.y * -46; // 距离火箭减小7%
             
@@ -388,7 +387,7 @@ export class GenericRocket extends GenericSatellite {
         }
         
         // 后向推进器火焰
-        if (this.isThrustingBackward && this.fuel > 0) {
+        if (this.isThrustingForward && this.fuel > 0) {
             const flameX = rocketX + direction.x * -46; // 距离火箭减小7%
             const flameY = rocketY + direction.y * -46; // 距离火箭减小7%
             

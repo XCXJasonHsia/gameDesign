@@ -2,6 +2,6 @@ import {GenericPreparationScene} from '../generalClasses/GenericPreparationScene
 
 export class PreparationSceneEg extends GenericPreparationScene {
     constructor() {
-        super('PreparationSceneEg', 'RocketVideoScene');
+        super('PreparationSceneEg', 'SurfaceplayScene');
     }
 } 

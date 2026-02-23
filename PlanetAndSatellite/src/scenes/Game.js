@@ -41,7 +41,7 @@ export class Game extends Phaser.Scene {
         subtitle.setOrigin(0.5);
         
         // 创建 Battle 按钮
-        const battleButton = this.add.text(400, 320, 'brokenRocket', {
+        const battleButton = this.add.text(400, 320, 'Adventure', {
             fontSize: '32px',
             fill: '#ffffff',
             backgroundColor: '#333333',
