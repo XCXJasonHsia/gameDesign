@@ -172,6 +172,7 @@ export class ScenePulsar extends GenericScene {
         // 创建一个白色的圆形作为光环，使用行星在游戏世界中的位置
         const halo = this.add.circle(planet.x, planet.y, 100, 0xffffff, 0.384); // 初始不透明度减小40%
         halo.setDepth(10); // 设置在行星之上以便调试
+        halo.collided = false; // 初始化碰撞状态为false
         
         // 添加到光环数组
         this.halos.push(halo);
@@ -357,10 +358,16 @@ export class ScenePulsar extends GenericScene {
             const haloRadius = halo.radius;
             
             // 检查是否碰撞
-            if (distance < rocketRadius + haloRadius) {
+            if (distance < rocketRadius + haloRadius && !halo.collided) {
                 console.log('飞船与光环碰撞，距离:', distance, '飞船半径:', rocketRadius, '光环半径:', haloRadius);
+                // 标记光环已碰撞，避免重复触发
+                halo.collided = true;
                 // 计算并应用向外的冲量
                 this.applyHaloImpulse(planet);
+                // 触发白屏效果
+                if (this.uiScene) {
+                    this.uiScene.triggerWhiteoutEffect();
+                }
             }
         });
     }
@@ -369,9 +376,9 @@ export class ScenePulsar extends GenericScene {
     applyHaloImpulse(planet) {
         if (!this.leader) return;
         
-        // 计算飞船到行星的距离
-        const dx = this.leader.x - planet.x;
-        const dy = this.leader.y - planet.y;
+        // 计算飞船到行星的距离（使用position向量）
+        const dx = this.leader.position.x - planet.x;
+        const dy = this.leader.position.y - planet.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         // 计算单位向量（向外方向）
@@ -380,16 +387,29 @@ export class ScenePulsar extends GenericScene {
         
         // 计算冲量大小，与距离成反比
         // 距离越小，冲量越大
-        const baseImpulse = 24; // 冲量大小，调整到现在的1.4倍
-        const impulse = baseImpulse / Math.pow(distance / 100, 2); // 提高反比的程度，距离越小冲量增长越快
+        const baseImpulse = 1890; // 冲量大小，减小到现在的60%
+        const impulse = baseImpulse / Math.pow(distance / 100, 1.7); // 与距离成1.7倍反比，距离越小冲量增长越快
         
         console.log('应用光环冲量，距离:', distance, '冲量大小:', impulse);
         
         // 直接应用瞬时冲量，不使用持续冲量
-        // 由于使用的是Verlet积分，我们直接修改位置，模拟速度变化
+        // 由于使用的是Verlet积分，速度是由position和previousPosition的差值计算的
+        // 所以我们只需要修改previousPosition，保持position不变，这样速度就会增加
         const dt = 1 / 60; // 假设60fps
-        this.leader.position.x += unitX * impulse * dt;
-        this.leader.position.y += unitY * impulse * dt;
+        const impulseX = unitX * impulse * dt;
+        const impulseY = unitY * impulse * dt;
+        
+        // 只修改previousPosition，这样在下次积分时，速度就会包含这个冲量
+        // 原理：velocity = (position - previousPosition) / dt
+        // 减少previousPosition，相当于增加了速度
+        this.leader.previousPosition.x -= impulseX;
+        this.leader.previousPosition.y -= impulseY;
+        
+        // 同时更新显示位置，确保视觉效果同步
+        this.leader.x = this.leader.position.x;
+        this.leader.y = this.leader.position.y;
+        
+        console.log('冲量应用完成，previousPosition变化:', -impulseX, -impulseY);
     }
 
     ifSuccess() {
@@ -426,6 +446,47 @@ export class UIScenePulsar extends GenericUIScene {
         this.mainScene = null; // 稍后在 create 方法中初始化
         this.gravityArrow = null; // 指向引力中心的箭头
         this.flashes = []; // 闪屏效果数组
+        this.whiteoutEffect = null; // 白屏效果，初始化为null
+    }
+    
+    // 触发白屏效果
+    triggerWhiteoutEffect() {
+        // 如果已经有白屏效果在进行中，不重复触发
+        if (this.whiteoutEffect) return;
+        
+        console.log('触发白屏效果');
+        
+        // 创建全屏白色覆盖层
+        const screenWidth = this.cameras.main.width;
+        const screenHeight = this.cameras.main.height;
+        
+        this.whiteoutEffect = this.add.rectangle(
+            screenWidth / 2,
+            screenHeight / 2,
+            screenWidth,
+            screenHeight,
+            0xffffff,
+            1
+        );
+        this.whiteoutEffect.setScrollFactor(0); // 不随相机移动
+        this.whiteoutEffect.setDepth(1001); // 设置在最上层
+        
+        // 白屏持续0.1秒后在0.4秒内恢复
+        this.time.delayedCall(100, () => {
+            // 淡出效果，0.4秒内不透明度降到0
+            this.tweens.add({
+                targets: this.whiteoutEffect,
+                alpha: 0,
+                duration: 400,
+                ease: 'Linear',
+                onComplete: () => {
+                    // 动画完成后销毁白屏效果
+                    this.whiteoutEffect.destroy();
+                    this.whiteoutEffect = null;
+                    console.log('白屏效果结束');
+                }
+            });
+        });
     }
 
     create() {
