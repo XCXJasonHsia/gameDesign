@@ -89,6 +89,17 @@ export class Preloader extends Phaser.Scene {
         for (let i = 1; i <= 10; i++) {
             this.load.image(`flash_${i}`, `pulse/flash/1 (${i}).png`);
         }
+        
+        // 加载陨石动画的12帧图片
+        for (let i = 1; i <= 12; i++) {
+            this.load.image(`meteor_frame_${i}`, `pulse/rock/2 (${i}).png`);
+        }
+        
+        // 加载陨石静态纹理
+        this.load.image('meteor_test', 'pulse/rock/test (1).png');
+        this.load.image('meteor_test2', 'pulse/rock/test (2) .png');
+        this.load.image('meteor_test3', 'pulse/rock/test (3) .png');
+        this.load.image('meteor_test4', 'pulse/rock/test (4) .png');
     }
 
     create() {

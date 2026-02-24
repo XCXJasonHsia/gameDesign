@@ -1,5 +1,6 @@
 import { RocketPulse } from '../../../AdventureObjects/Pulsar/RocketPulse.js';
 import { PlanetPulse } from '../../../AdventureObjects/Pulsar/PlanetPulse.js';
+import { MeteorPulse } from '../../../AdventureObjects/Pulsar/MeteorPulse.js';
 import { GenericScene, GenericUIScene } from '../../../generalClasses/GenericScene.js';
 import { GravitySystem } from '../../../Engines/GravitySystem.js';
 
@@ -17,6 +18,9 @@ export class ScenePulsar extends GenericScene {
         this.halos = [];
         // 开始生成光环
         this.startGeneratingHalos();
+        
+        // 初始化陨石
+        this.initializeMeteors();
         
         // 闪屏效果将在UI场景中生成，不需要在主场景中初始化
 
@@ -224,7 +228,7 @@ export class ScenePulsar extends GenericScene {
         // 添加旋转动画
         this.tweens.add({
             targets: this.pulseFlag,
-            rotation: 2 * Math.PI,
+            rotation: -2 * Math.PI,
             duration: 10000,
             repeat: -1,
             ease: 'Linear'
@@ -266,6 +270,322 @@ export class ScenePulsar extends GenericScene {
         // 创建pulse行星，设置适当的半径和质量以确保它具有吸引力
         const pulsePlanet = new PlanetPulse(this, centerX, centerY, 'pulse_planet', 144, false, 10000); // 半径减小40%
         this.planets.push(pulsePlanet);
+    }
+    
+    // 初始化陨石
+    initializeMeteors() {
+        this.meteors = [];
+        const centerX = this.cameras.main.width / 2;
+        const centerY = this.cameras.main.height / 2;
+        
+        // 创建第一个陨石（距离600）
+        const meteor1 = new MeteorPulse(this, centerX + 600, centerY, 'meteor_test', this.planets, false, 20, this.gravitySystem, false);
+        meteor1.setPlanetCenter(centerX, centerY);
+        this.meteors.push(meteor1);
+        
+        // 创建第二个陨石（距离800，使用test(2)纹理，缩小到40%，落后40°）
+        const meteor2 = new MeteorPulse(this, centerX + 800, centerY, 'meteor_test2', this.planets, false, 20, this.gravitySystem, false);
+        meteor2.setPlanetCenter(centerX, centerY);
+        meteor2.setOrbitRadius(800);
+        meteor2.setScale(0.0288); // 0.072 * 0.4
+        meteor2.orbitAngle = -Math.PI * (40 / 180); // 落后40°
+        this.meteors.push(meteor2);
+        
+        // 创建第三个陨石（距离1600，使用test(1)纹理，缩小到30%，落后170°）
+        const meteor3 = new MeteorPulse(this, centerX + 1600, centerY, 'meteor_test', this.planets, false, 20, this.gravitySystem, false);
+        meteor3.setPlanetCenter(centerX, centerY);
+        meteor3.setOrbitRadius(1600);
+        meteor3.setScale(0.0216); // 0.072 * 0.3
+        meteor3.orbitAngle = -Math.PI * (170 / 180); // 落后170°
+        this.meteors.push(meteor3);
+        
+        // 创建第四个陨石（距离1750，使用test(3)纹理，缩小到70%，落后90°）
+        const meteor4 = new MeteorPulse(this, centerX + 1750, centerY, 'meteor_test3', this.planets, false, 20, this.gravitySystem, false);
+        meteor4.setPlanetCenter(centerX, centerY);
+        meteor4.setOrbitRadius(1750);
+        meteor4.setScale(0.0504); // 0.072 * 0.7
+        meteor4.orbitAngle = -Math.PI * (90 / 180); // 落后90°
+        this.meteors.push(meteor4);
+        
+        // 创建第五个陨石（距离1300，使用test(4)纹理，缩小到80%，落后260°）
+        const meteor5 = new MeteorPulse(this, centerX + 1300, centerY, 'meteor_test4', this.planets, false, 20, this.gravitySystem, false);
+        meteor5.setPlanetCenter(centerX, centerY);
+        meteor5.setOrbitRadius(1300);
+        meteor5.setScale(0.0576); // 0.072 * 0.8
+        meteor5.orbitAngle = -Math.PI * (260 / 180); // 落后260°
+        this.meteors.push(meteor5);
+        
+        // 创建第六个陨石（距离1000，使用test(1)纹理，缩小到50%，提前50°）
+        const meteor6 = new MeteorPulse(this, centerX + 1000, centerY, 'meteor_test', this.planets, false, 20, this.gravitySystem, false);
+        meteor6.setPlanetCenter(centerX, centerY);
+        meteor6.setOrbitRadius(1000);
+        meteor6.setScale(0.036); // 0.072 * 0.5
+        meteor6.orbitAngle = Math.PI * (50 / 180); // 提前50°
+        this.meteors.push(meteor6);
+        
+        // 创建第七个陨石（距离1500，使用test(2)纹理，增大到120%，提前20°）
+        const meteor7 = new MeteorPulse(this, centerX + 1500, centerY, 'meteor_test2', this.planets, false, 20, this.gravitySystem, false);
+        meteor7.setPlanetCenter(centerX, centerY);
+        meteor7.setOrbitRadius(1500);
+        meteor7.setScale(0.0864); // 0.072 * 1.2
+        meteor7.orbitAngle = Math.PI * (20 / 180); // 提前20°
+        this.meteors.push(meteor7);
+        
+        // 创建第八个陨石（距离500，使用test(3)纹理，缩小到50%，提前100°）
+        const meteor8 = new MeteorPulse(this, centerX + 500, centerY, 'meteor_test3', this.planets, false, 20, this.gravitySystem, false);
+        meteor8.setPlanetCenter(centerX, centerY);
+        meteor8.setOrbitRadius(500);
+        meteor8.setScale(0.036); // 0.072 * 0.5
+        meteor8.orbitAngle = Math.PI * (100 / 180); // 提前100°
+        this.meteors.push(meteor8);
+        
+        // 增加一个在1500处大小增大到110%落后40°的陨石
+        const meteor9 = new MeteorPulse(this, centerX + 1500, centerY, 'meteor_test2', this.planets, false, 20, this.gravitySystem, false);
+        meteor9.setPlanetCenter(centerX, centerY);
+        meteor9.setOrbitRadius(1500);
+        meteor9.setScale(0.0792); // 0.072 * 1.1
+        meteor9.orbitAngle = -Math.PI * (40 / 180); // 落后40°
+        console.log('创建陨石9，纹理:', 'meteor_test2');
+        this.meteors.push(meteor9);
+        
+        // 增加一个在900处提前100°大小为150%的陨石
+        const meteor10 = new MeteorPulse(this, centerX + 900, centerY, 'meteor_test3', this.planets, false, 20, this.gravitySystem, false);
+        meteor10.setPlanetCenter(centerX, centerY);
+        meteor10.setOrbitRadius(900);
+        meteor10.setScale(0.108); // 0.072 * 1.5
+        meteor10.orbitAngle = Math.PI * (100 / 180); // 提前100°
+        console.log('创建陨石10，纹理:', 'meteor_test3');
+        this.meteors.push(meteor10);
+        
+        // 增加一个在1900处大小为200%落后120°的陨石
+        const meteor11 = new MeteorPulse(this, centerX + 1900, centerY, 'meteor_test4', this.planets, false, 20, this.gravitySystem, false);
+        meteor11.setPlanetCenter(centerX, centerY);
+        meteor11.setOrbitRadius(1900);
+        meteor11.setScale(0.144); // 0.072 * 2.0
+        meteor11.orbitAngle = -Math.PI * (120 / 180); // 落后120°
+        console.log('创建陨石11，纹理:', 'meteor_test4');
+        this.meteors.push(meteor11);
+        
+        // 增加一个在1000处大小为130%落后100°的陨石
+        const meteor12 = new MeteorPulse(this, centerX + 1000, centerY, 'meteor_test', this.planets, false, 20, this.gravitySystem, false);
+        meteor12.setPlanetCenter(centerX, centerY);
+        meteor12.setOrbitRadius(1000);
+        meteor12.setScale(0.0936); // 0.072 * 1.3
+        meteor12.orbitAngle = -Math.PI * (100 / 180); // 落后100°
+        console.log('创建陨石12，纹理:', 'meteor_test');
+        this.meteors.push(meteor12);
+        
+        // 增加一个在2400处大小为180%落后10°的陨石
+        const meteor13 = new MeteorPulse(this, centerX + 2400, centerY, 'meteor_test4', this.planets, false, 20, this.gravitySystem, false);
+        meteor13.setPlanetCenter(centerX, centerY);
+        meteor13.setOrbitRadius(2400);
+        meteor13.setScale(0.1296); // 0.072 * 1.8
+        meteor13.orbitAngle = -Math.PI * (10 / 180); // 落后10°
+        console.log('创建陨石13，纹理:', 'meteor_test4');
+        this.meteors.push(meteor13);
+        
+        // 增加一个在3000处大小为300%提前120°的陨石
+        const meteor14 = new MeteorPulse(this, centerX + 3000, centerY, 'meteor_test3', this.planets, false, 20, this.gravitySystem, false);
+        meteor14.setPlanetCenter(centerX, centerY);
+        meteor14.setOrbitRadius(3000);
+        meteor14.setScale(0.216); // 0.072 * 3.0
+        meteor14.orbitAngle = Math.PI * (120 / 180); // 提前120°
+        console.log('创建陨石14，纹理:', 'meteor_test3');
+        this.meteors.push(meteor14);
+        
+        // 增加一个在2800处大小为40%落后20°的陨石
+        const meteor15 = new MeteorPulse(this, centerX + 2800, centerY, 'meteor_test2', this.planets, false, 20, this.gravitySystem, false);
+        meteor15.setPlanetCenter(centerX, centerY);
+        meteor15.setOrbitRadius(2800);
+        meteor15.setScale(0.0288); // 0.072 * 0.4
+        meteor15.orbitAngle = -Math.PI * (20 / 180); // 落后20°
+        console.log('创建陨石15，纹理:', 'meteor_test2');
+        this.meteors.push(meteor15);
+        
+        // 增加一个在2600处大小为80%落后200°的陨石
+        const meteor16 = new MeteorPulse(this, centerX + 2600, centerY, 'meteor_test4', this.planets, false, 20, this.gravitySystem, false);
+        meteor16.setPlanetCenter(centerX, centerY);
+        meteor16.setOrbitRadius(2600);
+        meteor16.setScale(0.0576); // 0.072 * 0.8
+        meteor16.orbitAngle = -Math.PI * (200 / 180); // 落后200°
+        console.log('创建陨石16，纹理:', 'meteor_test4');
+        this.meteors.push(meteor16);
+        
+        // 增加一个在3100处大小为30%落后100°的陨石
+        const meteor17 = new MeteorPulse(this, centerX + 3100, centerY, 'meteor_test', this.planets, false, 20, this.gravitySystem, false);
+        meteor17.setPlanetCenter(centerX, centerY);
+        meteor17.setOrbitRadius(3100);
+        meteor17.setScale(0.0216); // 0.072 * 0.3
+        meteor17.orbitAngle = -Math.PI * (100 / 180); // 落后100°
+        console.log('创建陨石17，纹理:', 'meteor_test');
+        this.meteors.push(meteor17);
+        
+        // 增加一个在2300处大小为60%落后240°的陨石
+        const meteor18 = new MeteorPulse(this, centerX + 2300, centerY, 'meteor_test3', this.planets, false, 20, this.gravitySystem, false);
+        meteor18.setPlanetCenter(centerX, centerY);
+        meteor18.setOrbitRadius(2300);
+        meteor18.setScale(0.0432); // 0.072 * 0.6
+        meteor18.orbitAngle = -Math.PI * (240 / 180); // 落后240°
+        console.log('创建陨石18，纹理:', 'meteor_test3');
+        this.meteors.push(meteor18);
+        
+        // 增加一个在3500处大小为90%提前100°的陨石
+        const meteor19 = new MeteorPulse(this, centerX + 3500, centerY, 'meteor_test2', this.planets, false, 20, this.gravitySystem, false);
+        meteor19.setPlanetCenter(centerX, centerY);
+        meteor19.setOrbitRadius(3500);
+        meteor19.setScale(0.0648); // 0.072 * 0.9
+        meteor19.orbitAngle = Math.PI * (100 / 180); // 提前100°
+        console.log('创建陨石19，纹理:', 'meteor_test2');
+        this.meteors.push(meteor19);
+        
+        // 增加一个在3700处大小为250%提前150°的陨石
+        const meteor20 = new MeteorPulse(this, centerX + 3700, centerY, 'meteor_test3', this.planets, false, 20, this.gravitySystem, false);
+        meteor20.setPlanetCenter(centerX, centerY);
+        meteor20.setOrbitRadius(3700);
+        meteor20.setScale(0.18); // 0.072 * 2.5
+        meteor20.orbitAngle = Math.PI * (150 / 180); // 提前150°
+        console.log('创建陨石20，纹理:', 'meteor_test3');
+        this.meteors.push(meteor20);
+        
+        // 增加一个在4000处大小为110%提前200°的陨石
+        const meteor21 = new MeteorPulse(this, centerX + 4000, centerY, 'meteor_test4', this.planets, false, 20, this.gravitySystem, false);
+        meteor21.setPlanetCenter(centerX, centerY);
+        meteor21.setOrbitRadius(4000);
+        meteor21.setScale(0.0792); // 0.072 * 1.1
+        meteor21.orbitAngle = Math.PI * (200 / 180); // 提前200°
+        console.log('创建陨石21，纹理:', 'meteor_test4');
+        this.meteors.push(meteor21);
+        
+        // 增加一个在4000处大小为50%提前90°的陨石
+        const meteor22 = new MeteorPulse(this, centerX + 4000, centerY, 'meteor_test', this.planets, false, 20, this.gravitySystem, false);
+        meteor22.setPlanetCenter(centerX, centerY);
+        meteor22.setOrbitRadius(4000);
+        meteor22.setScale(0.036); // 0.072 * 0.5
+        meteor22.orbitAngle = Math.PI * (90 / 180); // 提前90°
+        console.log('创建陨石22，纹理:', 'meteor_test');
+        this.meteors.push(meteor22);
+        
+        // 增加一个在3800处大小为70%提前30°的陨石
+        const meteor23 = new MeteorPulse(this, centerX + 3800, centerY, 'meteor_test2', this.planets, false, 20, this.gravitySystem, false);
+        meteor23.setPlanetCenter(centerX, centerY);
+        meteor23.setOrbitRadius(3800);
+        meteor23.setScale(0.0504); // 0.072 * 0.7
+        meteor23.orbitAngle = Math.PI * (30 / 180); // 提前30°
+        console.log('创建陨石23，纹理:', 'meteor_test2');
+        this.meteors.push(meteor23);
+    }
+    
+    // 检测飞船与陨石的碰撞
+    checkMeteorCollisions() {
+        if (!this.leader) return;
+        
+        // 遍历所有陨石
+        this.meteors.forEach(meteor => {
+            // 使用半径检测碰撞
+            if (this.checkCollisionWithMeteor(this.leader, meteor)) {
+                console.log('飞船与陨石碰撞！');
+                // 飞船粘在陨石上
+                this.attachRocketToMeteor(this.leader, meteor);
+            }
+        });
+    }
+    
+    // 检查飞船与陨石的碰撞（半径检测）
+    checkCollisionWithMeteor(rocket, meteor) {
+        // 确保使用正确的位置获取方式
+        const rocketX = rocket.position ? rocket.position.x : rocket.x;
+        const rocketY = rocket.position ? rocket.position.y : rocket.y;
+        const meteorX = meteor.position ? meteor.position.x : meteor.x;
+        const meteorY = meteor.position ? meteor.position.y : meteor.y;
+        
+        // 计算飞船到陨石的距离
+        const dx = rocketX - meteorX;
+        const dy = rocketY - meteorY;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        // 计算飞船和陨石的半径
+        const rocketRadius = rocket.radius || (rocket.displayWidth / 2);
+        const meteorRadius = (meteor.radius || (meteor.displayWidth / 2)) * 2 * 0.85; // 陨石半径增加到原来的两倍，再缩小到85%
+        
+        // 检查是否碰撞
+        return distance < rocketRadius + meteorRadius;
+    }
+    
+    // 飞船粘在陨石上
+    attachRocketToMeteor(rocket, meteor) {
+        // 设置飞船为粘附状态
+        rocket.isAttached = true;
+        rocket.attachedMeteor = meteor;
+        
+        // 停止飞船的推进和物理更新
+        rocket.isBoosting = false;
+        rocket.acceleration.set(0, 0);
+        
+        // 计算飞船在陨石上的位置，使用增加到两倍再缩小到85%的陨石半径
+        const rocketRadius = rocket.radius || (rocket.displayWidth / 2);
+        const meteorRadius = (meteor.radius || (meteor.displayWidth / 2)) * 2 * 0.85; // 陨石半径增加到原来的两倍，再缩小到85%
+        const totalRadius = rocketRadius + meteorRadius;
+        
+        // 计算从陨石到飞船的方向
+        const dx = rocket.x - meteor.x;
+        const dy = rocket.y - meteor.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 0) {
+            // 将飞船移动到陨石表面
+            const targetX = meteor.x + (dx / distance) * totalRadius;
+            const targetY = meteor.y + (dy / distance) * totalRadius;
+            
+            // 更新飞船位置
+            if (rocket.position) {
+                rocket.position.set(targetX, targetY);
+            }
+            rocket.x = targetX;
+            rocket.y = targetY;
+            
+            // 更新previousPosition以避免物理引擎问题
+            if (rocket.previousPosition) {
+                rocket.previousPosition.set(targetX, targetY);
+            }
+        }
+        
+        console.log('飞船已粘在陨石上！');
+    }
+    
+    // 更新粘附在陨石上的飞船位置
+    updateAttachedRocketPosition() {
+        if (!this.leader || !this.leader.isAttached || !this.leader.attachedMeteor) return;
+        
+        const rocket = this.leader;
+        const meteor = rocket.attachedMeteor;
+        
+        // 计算飞船在陨石上的位置，使用增加到两倍再缩小到85%的陨石半径
+        const rocketRadius = rocket.radius || (rocket.displayWidth / 2);
+        const meteorRadius = (meteor.radius || (meteor.displayWidth / 2)) * 2 * 0.85; // 陨石半径增加到原来的两倍，再缩小到85%
+        const totalRadius = rocketRadius + meteorRadius;
+        
+        // 计算从陨石到飞船的方向（保持相对位置）
+        const dx = rocket.x - meteor.x;
+        const dy = rocket.y - meteor.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 0) {
+            // 保持飞船在陨石表面
+            const targetX = meteor.x + (dx / distance) * totalRadius;
+            const targetY = meteor.y + (dy / distance) * totalRadius;
+            
+            // 更新飞船位置
+            if (rocket.position) {
+                rocket.position.set(targetX, targetY);
+            }
+            rocket.x = targetX;
+            rocket.y = targetY;
+            
+            // 更新previousPosition以避免物理引擎问题
+            if (rocket.previousPosition) {
+                rocket.previousPosition.set(targetX, targetY);
+            }
+        }
     }
 
     initializeSatellites() {
@@ -337,6 +657,19 @@ export class ScenePulsar extends GenericScene {
             // 检测飞船与光环的碰撞
             this.checkHaloCollisions();
         }
+        
+        // 更新陨石
+        if (this.meteors) {
+            this.meteors.forEach(meteor => {
+                meteor.update(time, delta);
+            });
+        }
+        
+        // 更新粘附在陨石上的飞船位置
+        this.updateAttachedRocketPosition();
+        
+        // 检测飞船与陨石的碰撞
+        this.checkMeteorCollisions();
     }
     
     // 检测飞船与光环的碰撞
@@ -500,6 +833,45 @@ export class UIScenePulsar extends GenericUIScene {
         
         // 开始生成闪屏效果
         this.startGeneratingFlashes();
+        
+        // 在UI图层上绘制不透明度逐渐上升的黑色圆圈（半径280到300）
+        this.drawBlackCircles();
+    }
+    
+    // 绘制不透明度逐渐上升的黑色空心圆圈，密排形成渐变效果
+    drawBlackCircles() {
+        const screenWidth = this.cameras.main.width;
+        const screenHeight = this.cameras.main.height;
+        const screenCenterX = screenWidth / 2;
+        const screenCenterY = screenHeight / 2;
+        
+        // 创建graphics对象用于绘制空心圆圈
+        const graphics = this.add.graphics();
+        graphics.setScrollFactor(0); // 不随相机移动
+        graphics.setDepth(997); // 设置在文本元素之下
+        
+        // 绘制多个黑色空心圆圈，半径从260到300，间隔1，形成密排渐变效果
+        // 不透明度逐渐上升到100%，上升速度先快后慢
+        for (let radius = 260; radius <= 300; radius++) {
+            // 计算不透明度，从0到1逐渐上升，使用二次缓动函数使上升速度先快后慢
+            const t = (radius - 260) / (300 - 260);
+            const alpha = t * t; // 二次缓动，先快后慢
+            
+            // 设置线条样式
+            graphics.lineStyle(1, 0x000000, alpha); // 线宽1，黑色，不透明度渐变
+            
+            // 绘制空心圆圈
+            graphics.strokeCircle(screenCenterX, screenCenterY, radius);
+        }
+        
+        // 额外在半径300到500处非常密排地绘制完全不透明的黑色空心圆圈
+        for (let radius = 300; radius <= 500; radius++) {
+            // 设置线条样式（完全不透明）
+            graphics.lineStyle(1, 0x000000, 1); // 线宽1，黑色，完全不透明
+            
+            // 绘制空心圆圈
+            graphics.strokeCircle(screenCenterX, screenCenterY, radius);
+        }
     }
 
     // 创建指向引力中心的箭头
@@ -703,7 +1075,7 @@ export class UIScenePulsar extends GenericUIScene {
         const baseRadius = 260;
         const baseScale = 0.2;
         const radius = baseRadius; // 保持半径不变
-        const arrowScale = baseScale * cameraZoom; // 箭头大小随相机缩放调整
+        const arrowScale = baseScale; // 箭头大小固定，不随相机缩放改变
         
         // 计算箭头在以屏幕中心为圆心的圆周上的位置
         const arrowX = screenCenterX + unitX * radius;

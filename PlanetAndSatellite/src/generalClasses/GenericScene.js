@@ -658,7 +658,7 @@ export class GenericUIScene extends Phaser.Scene {
         );
         this.cooldownText.setOrigin(1, 0.5); // 右对齐
         this.cooldownText.setScrollFactor(0); // 固定位置，不随相机移动
-        this.cooldownText.setDepth(999);       // 确保在UILayer上
+        this.cooldownText.setDepth(1001);       // 确保在所有元素之上
         this.cooldownText.visible = false; // 初始隐藏
         this.UILayer.add(this.cooldownText); // 添加到UI层
     }
@@ -681,7 +681,7 @@ export class GenericUIScene extends Phaser.Scene {
         );
         this.thrustDurationText.setOrigin(1, 0.5); // 右对齐，与冷却时间对齐
         this.thrustDurationText.setScrollFactor(0); // 固定位置，不随相机移动
-        this.thrustDurationText.setDepth(999);       // 确保在UILayer上
+        this.thrustDurationText.setDepth(1001);       // 确保在所有元素之上
         this.thrustDurationText.visible = false; // 初始隐藏
         this.UILayer.add(this.thrustDurationText); // 添加到UI层
     }
@@ -703,7 +703,7 @@ export class GenericUIScene extends Phaser.Scene {
         );
         this.energyStateText.setOrigin(1, 0.5); // 右对齐
         this.energyStateText.setScrollFactor(0); // 固定位置，不随相机移动
-        this.energyStateText.setDepth(999);       // 确保在UILayer上
+        this.energyStateText.setDepth(1001);       // 确保在所有元素之上
         this.UILayer.add(this.energyStateText); // 添加到UI层
     }
     
