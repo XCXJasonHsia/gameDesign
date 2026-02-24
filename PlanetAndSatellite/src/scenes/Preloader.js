@@ -54,6 +54,9 @@ export class Preloader extends Phaser.Scene {
         this.load.image('fire2', 'fire2.png');
         this.load.image('bg_map.png', 'bg_map.png');
         
+        this.load.image('livableplanetbg', 'SurfacePlaySceneAssets/livable_planet_bg.png');
+        this.load.image('livableplanetground', 'SurfacePlaySceneAssets/livable_planet_ground.png');
+
         this.load.spritesheet(
             'dude',
             'SurfacePlaySceneAssets/dude.png',

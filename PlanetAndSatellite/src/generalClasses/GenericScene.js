@@ -392,7 +392,7 @@ export class GenericScene extends Phaser.Scene {
             uiSceneInstance.fadeOut(() => {
                 this.scene.stop(this.sceneKeyUI);
                 // 启动个人准备界面场景
-                this.scene.start('PreparationSceneEg', {
+                this.scene.start('PreparationScene', {
                             fromScene: this.sceneKey,
                             previousState: this.previousState
                         });
@@ -400,7 +400,7 @@ export class GenericScene extends Phaser.Scene {
         } else {
             // 后备方案：如果UI场景不存在，直接切换场景
             this.scene.stop(this.sceneKeyUI);
-            this.scene.start('PreparationSceneEg', {
+            this.scene.start('PreparationScene', {
                         fromScene: this.sceneKey,
                         previousState: this.previousState
                     });

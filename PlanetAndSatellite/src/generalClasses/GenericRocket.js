@@ -182,8 +182,8 @@ export class GenericRocket extends GenericSatellite {
         this.controlKeys = keys;
         
         // 存储初始推力值
-        this.baseThrustPower = 100;
-        this.boostThrustPower = 200;
+        this.baseThrustPower = this.thrustPower;
+        this.boostThrustPower = this.thrustPower * 2;
     }
 
     update(time, delta) {
@@ -515,7 +515,7 @@ export class GenericRocket extends GenericSatellite {
         );
         this.fuelWarningText.setOrigin(1, 0.5); // 右对齐，与束缚态文字使用相同的对齐方式
         this.fuelWarningText.setScrollFactor(0); // 固定位置，不随相机移动
-        this.fuelWarningText.setDepth(1001); // 确保在所有元素之上
+        this.fuelWarningText.setDepth(999); // 确保在UILayer上
         this.fuelWarningText.visible = false; // 初始隐藏
         
         // 添加到UI层
@@ -539,7 +539,7 @@ export class GenericRocket extends GenericSatellite {
                 );
                 this.fuelWarningText.setOrigin(1, 0.5);
                 this.fuelWarningText.setScrollFactor(0);
-                this.fuelWarningText.setDepth(1001); // 确保在所有元素之上
+                this.fuelWarningText.setDepth(999);
                 this.fuelWarningText.visible = false;
             }
         }
@@ -741,9 +741,6 @@ export class GenericRocket extends GenericSatellite {
         }
         this.fuelWarningTimer = 0;
         this.fuelWarningVisible = false;
-        
-        // 立即更新燃油警告状态，确保警告文字被隐藏
-        this.updateFuelWarning();
         
         super.resetToInitialState();
     }

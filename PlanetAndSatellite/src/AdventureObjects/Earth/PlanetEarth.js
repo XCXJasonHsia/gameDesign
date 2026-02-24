@@ -3,7 +3,7 @@ import {GenericPlanet} from '../../generalClasses/GenericPlanet.js';
 export class PlanetEarth extends GenericPlanet {
     constructor(scene, x, y, earthTexture, meatpieTexture, radius, setHealthBar, bodyMass) {
         super(scene, x, y, earthTexture, radius, setHealthBar, bodyMass);
-        this.G = 4000;
+        this.G = 2000;
         this.power = -2;
         this.earthCollapse = false;
         this.earthTexture = earthTexture; // 保存地球纹理
@@ -16,7 +16,7 @@ export class PlanetEarth extends GenericPlanet {
     update(time) {
         this.changePower(time);
         if(this.delayTimeStart && this.delayTimeStart + this.interval < time) {
-            this.power = -1.5;
+            this.power = -1.7;
             this.G = 1000;
         }
         super.update();

@@ -23,11 +23,11 @@ export class SceneEarth extends GenericScene {
         this.centerX = centerX;
         this.centerY = centerY;
         const bg = this.add.image(centerX, centerY, 'bg2');
-        bg.setDepth(-100); // 设置背景为最底层
-        bg.setScale(1); // 背景图片放大一倍（原来的50%）
+        bg.setDepth(-100); 
+        bg.setScale(1); 
         
         // 设置初始相机缩放
-        this.cameras.main.setZoom(1.12); // 设置相机缩放值为1.12（原来的1.4减少20%）
+        this.cameras.main.setZoom(0.5);
     }
 
     showSuccessAreaOverlay() {
@@ -80,8 +80,6 @@ export class SceneEarth extends GenericScene {
             this.successMaskCircle.y = earth.y;
         }
     }
-
-
     
 
     initializePlanets() {
@@ -105,7 +103,7 @@ export class SceneEarth extends GenericScene {
     }
 
     initializeRocket() {
-        const height = 280; // 飞船距离行星更远40%（200 * 1.4）
+        const height = 500;
         this.initialRocketPosition = null;
         
         // 先销毁旧的火箭实例，避免图像残留
@@ -133,7 +131,7 @@ export class SceneEarth extends GenericScene {
     ifSuccess() {
         const successBoundary = 1000;
         const uiScene = this.scene.get('UISceneEarth');
-        if(this.gameStarted === true && this.distance > successBoundary) {
+        if(this.gameStarted === true && this.planets[0] && this.planets[0].earthCollapse === true && this.distance > successBoundary) {
             this.isPaused = true;
             this.physics.world.pause();
             this.tweens.pauseAll();
@@ -215,8 +213,20 @@ export class SceneEarth extends GenericScene {
         
         // 重新开始相机跟随
         if (this.cameraFollow && this.leader) {
-            this.cameras.main.startFollow(this.leader);
-            this.cameras.main.setLerp(this.cameraSmoothness, this.cameraSmoothness);
+            // 镜头缓慢移动到leader并缩放为0.5
+            this.tweens.add({
+                targets: this.cameras.main,
+                scrollX: this.leader.x - this.cameras.main.width / 2,
+                scrollY: this.leader.y - this.cameras.main.height / 2,
+                zoom: 0.5,
+                duration: 1000,
+                ease: 'Power2',
+                onComplete: () => {
+                    // 移动完成后开始相机跟随
+                    this.cameras.main.startFollow(this.leader);
+                    this.cameras.main.setLerp(this.cameraSmoothness, this.cameraSmoothness);
+                }
+            });
         }
         
         console.log('游戏已恢复正常');
@@ -289,25 +299,27 @@ export class SceneEarth extends GenericScene {
                 this.startAdventure();
             }
         }
-        
         console.log('SceneEarth 已完全重置');
+    }
+    
+    // 重写checkLeaderBoundaries方法，禁用飞出过远重置
+    checkLeaderBoundaries() {
+        if(this.gameStarted === true && this.planets[0] && this.planets[0].earthCollapse === true) {
+            super.checkLeaderBoundaries();
+        }
     }
 }
 
 export class UISceneEarth extends GenericUIScene {
     constructor() {
         super('UISceneEarth');
-        this.tutorialStep = 0;
+        this.tutorialStep = 3;
         this.tutorialText = null;
         this.collisionHintText = null;
         this.tutorialSteps = [
-            { key: 'W', text: '按 W 向前推进' },
-            { key: 'S', text: '按 S 向后推进' },
-            { key: 'D', text: '按 D 向右喷气' },
-            { key: 'A', text: '按 A 向左喷气' },
+            { key: 'W', text: '按 W/S/A/D 喷气(可同时按)' }, 
             { key: 'SPACE', text: '按空格+W/S/A/D增加推力' },
-            { key: 'PLUS', text: '按 + 放大星图' },
-            { key: 'MINUS', text: '按 - 缩小星图' }
+            { key: 'PLUS', text: '按 +/- 放大缩小，放大星图' },
         ];
         this.mainScene = null; // 稍后在 create 方法中初始化
     }

@@ -28,7 +28,7 @@ export class RocketVideoScene extends Phaser.Scene {
         
         // 创建背景（使用与SurfaceplayScene相同的天空纹理）
         const skyWidth = 800 * 5;
-        const sky = this.add.image(skyWidth / 2, 300, 'sky').setScale(5, 1);
+        const sky = this.add.image(skyWidth / 2, 300, 'livableplanetbg').setScale(5*4000/1849, 3);
         
         // 创建地面图层（使用与SurfaceplayScene相同的地面纹理）
         this.platforms = this.physics.add.staticGroup();
@@ -37,9 +37,17 @@ export class RocketVideoScene extends Phaser.Scene {
         // 创建多个平台相互拼接
         for (let i = 0; i < 5; i++) {
             const x = 400 + i * 800;
-            this.platforms.create(x, groundY, 'ground').setScale(2).refreshBody();
+            this.platforms.create(x, 568, 'livableplanetground').setScale(2*416/383, 2).refreshBody();
         }
         
+        this.platforms.create(600, 400, 'ground');
+        this.platforms.create(750, 150, 'ground');
+        // 添加更多平台到右侧
+        this.platforms.create(1200, 300, 'ground');
+        this.platforms.create(1800, 450, 'ground');
+        this.platforms.create(2400, 200, 'ground');
+        this.platforms.create(3000, 350, 'ground');
+        this.platforms.create(3600, 250, 'ground');
         // 设置相机边界，确保相机不会拍摄超出背景的部分
         this.cameras.main.setBounds(0, 0, skyWidth, 600);
         
