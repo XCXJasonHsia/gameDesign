@@ -10,6 +10,7 @@ export class ScenePulsar extends GenericScene {
     }
 
     create() {
+        
         super.create();
         const uiScene = this.scene.get('UIScenePulsar');
         this.uiScene = uiScene;
@@ -26,20 +27,21 @@ export class ScenePulsar extends GenericScene {
 
         // 现在初始化完成，再显示成功区域覆盖层
         this.showSuccessAreaOverlay();
+        
     }
 
     // 开始生成光环
     startGeneratingHalos() {
-        console.log('开始生成光环');
+        //console.log('开始生成光环');
         
         // 定义一个函数来生成光环并调度下一次生成
         const scheduleNextHalo = () => {
-            console.log('触发光环生成');
+            //console.log('触发光环生成');
             this.generateHalo();
             
             // 随机延迟后再次生成光环，频率调整，延长上限时间间隔
             const nextDelay = Phaser.Math.Between(240, 2250); // 下限保持不变，上限延长到1.8倍
-            console.log('调度下一次光环生成，延迟:', nextDelay, 'ms');
+            //console.log('调度下一次光环生成，延迟:', nextDelay, 'ms');
             this.time.delayedCall(nextDelay, scheduleNextHalo, [], this);
         };
         
@@ -48,33 +50,33 @@ export class ScenePulsar extends GenericScene {
         
         // 调度下一次光环生成，频率增加
         const initialDelay = 850; // 初始延迟缩短到0.5倍
-        console.log('调度下一次光环生成，初始延迟:', initialDelay, 'ms');
+        //console.log('调度下一次光环生成，初始延迟:', initialDelay, 'ms');
         this.time.delayedCall(initialDelay, scheduleNextHalo, [], this);
     }
     
     // 开始生成闪屏效果
     startGeneratingFlashes() {
-        console.log('开始生成闪屏效果');
+        //console.log('开始生成闪屏效果');
         
         // 定义第一个生成机制的函数（频率降低50%，闪屏大小上限增加30%，下限升高40%）
         const scheduleNextFlash1 = () => {
-            console.log('触发光屏生成（机制1）');
+            //console.log('触发光屏生成（机制1）');
             this.generateFlash(35, 364); // 下限升高40%，上限增加30%
             
             // 随机延迟后再次生成闪屏，频率增加到现在的160%
             const nextDelay = Phaser.Math.Between(109, 547); // 175-875ms 增加到现在的160%
-            console.log('调度下一次闪屏生成（机制1），延迟:', nextDelay, 'ms');
+            //console.log('调度下一次闪屏生成（机制1），延迟:', nextDelay, 'ms');
             this.time.delayedCall(nextDelay, scheduleNextFlash1, [], this);
         };
         
         // 定义第二个生成机制的函数（频率增加60%，闪屏大小上限降低20%，下限降低40%）
         const scheduleNextFlash2 = () => {
-            console.log('触发光屏生成（机制2）');
+            //console.log('触发光屏生成（机制2）');
             this.generateFlash(4, 40); // 下限降低40%，上限降低20%
             
             // 随机延迟后再次生成闪屏，频率降低到现在的50%
             const nextDelay = Phaser.Math.Between(52, 262); // 26-131ms 降低到现在的50%
-            console.log('调度下一次闪屏生成（机制2），延迟:', nextDelay, 'ms');
+            //console.log('调度下一次闪屏生成（机制2），延迟:', nextDelay, 'ms');
             this.time.delayedCall(nextDelay, scheduleNextFlash2, [], this);
         };
         
@@ -83,12 +85,12 @@ export class ScenePulsar extends GenericScene {
         
         // 调度第一个生成机制
         const initialDelay1 = Phaser.Math.Between(109, 547); // 增加到现在的160%
-        console.log('调度下一次闪屏生成（机制1），初始延迟:', initialDelay1, 'ms');
+        //console.log('调度下一次闪屏生成（机制1），初始延迟:', initialDelay1, 'ms');
         this.time.delayedCall(initialDelay1, scheduleNextFlash1, [], this);
         
         // 调度第二个生成机制
         const initialDelay2 = Phaser.Math.Between(52, 262); // 降低到现在的50%
-        console.log('调度下一次闪屏生成（机制2），初始延迟:', initialDelay2, 'ms');
+        //console.log('调度下一次闪屏生成（机制2），初始延迟:', initialDelay2, 'ms');
         this.time.delayedCall(initialDelay2, scheduleNextFlash2, [], this);
     }
     
@@ -106,7 +108,7 @@ export class ScenePulsar extends GenericScene {
         // 随机持续时间（0.1-0.7s之间，上限延长40%）
         const duration = Phaser.Math.FloatBetween(0.1, 0.7) * 1000; // 转换为毫秒
         
-        console.log('生成闪屏效果，位置:', x, y, '大小:', size, '持续时间:', duration, 'ms');
+        //console.log('生成闪屏效果，位置:', x, y, '大小:', size, '持续时间:', duration, 'ms');
         
         // 创建闪屏精灵
         const flash = this.add.sprite(x, y, 'flash_1');
@@ -115,7 +117,7 @@ export class ScenePulsar extends GenericScene {
         
         // 添加到闪屏数组
         this.flashes.push(flash);
-        console.log('闪屏已添加到数组，当前闪屏数量:', this.flashes.length);
+        //console.log('闪屏已添加到数组，当前闪屏数量:', this.flashes.length);
         
         // 快速随机切换帧以达到闪屏效果
         let elapsedTime = 0;
@@ -156,7 +158,7 @@ export class ScenePulsar extends GenericScene {
         const index = this.flashes.indexOf(flash);
         if (index !== -1) {
             this.flashes.splice(index, 1);
-            console.log('闪屏已销毁，剩余闪屏数量:', this.flashes.length);
+            //console.log('闪屏已销毁，剩余闪屏数量:', this.flashes.length);
         }
         
         // 销毁闪屏精灵
@@ -167,11 +169,11 @@ export class ScenePulsar extends GenericScene {
     generateHalo() {
         const planet = this.planets[0];
         if (!planet) {
-            console.log('没有行星，无法生成光环');
+            //console.log('没有行星，无法生成光环');
             return;
         }
 
-        console.log('生成光环，行星位置:', planet.x, planet.y);
+        //console.log('生成光环，行星位置:', planet.x, planet.y);
         
         // 创建一个白色的圆形作为光环，使用行星在游戏世界中的位置
         const halo = this.add.circle(planet.x, planet.y, 100, 0xffffff, 0.384); // 初始不透明度减小40%
@@ -180,7 +182,7 @@ export class ScenePulsar extends GenericScene {
         
         // 添加到光环数组
         this.halos.push(halo);
-        console.log('光环已添加到数组，当前光环数量:', this.halos.length);
+        //console.log('光环已添加到数组，当前光环数量:', this.halos.length);
 
         // 光环外扩散动画
         this.tweens.add({
@@ -194,7 +196,7 @@ export class ScenePulsar extends GenericScene {
                 const index = this.halos.indexOf(halo);
                 if (index !== -1) {
                     this.halos.splice(index, 1);
-                    console.log('光环已销毁，剩余光环数量:', this.halos.length);
+                    //console.log('光环已销毁，剩余光环数量:', this.halos.length);
                 }
                 halo.destroy();
             }
@@ -268,7 +270,7 @@ export class ScenePulsar extends GenericScene {
         this.initialPlanetPositions.push({x: centerX, y: centerY});
         
         // 创建pulse行星，设置适当的半径和质量以确保它具有吸引力
-        const pulsePlanet = new PlanetPulse(this, centerX, centerY, 'pulse_planet', 144, false, 10000); // 半径减小40%
+        const pulsePlanet = new PlanetPulse(this, centerX, centerY, 'pulse_planet', 144, false, 10000);
         this.planets.push(pulsePlanet);
     }
     
@@ -277,7 +279,6 @@ export class ScenePulsar extends GenericScene {
         this.meteors = [];
         const centerX = this.cameras.main.width / 2;
         const centerY = this.cameras.main.height / 2;
-        
         // 创建第一个陨石（距离600）
         const meteor1 = new MeteorPulse(this, centerX + 600, centerY, 'meteor_test', this.planets, false, 20, this.gravitySystem, false);
         meteor1.setPlanetCenter(centerX, centerY);
@@ -345,7 +346,7 @@ export class ScenePulsar extends GenericScene {
         meteor9.setOrbitRadius(1500);
         meteor9.setScale(0.0792); // 0.072 * 1.1
         meteor9.orbitAngle = -Math.PI * (40 / 180); // 落后40°
-        console.log('创建陨石9，纹理:', 'meteor_test2');
+        //console.log('创建陨石9，纹理:', 'meteor_test2');
         this.meteors.push(meteor9);
         
         // 增加一个在900处提前100°大小为150%的陨石
@@ -354,7 +355,7 @@ export class ScenePulsar extends GenericScene {
         meteor10.setOrbitRadius(900);
         meteor10.setScale(0.108); // 0.072 * 1.5
         meteor10.orbitAngle = Math.PI * (100 / 180); // 提前100°
-        console.log('创建陨石10，纹理:', 'meteor_test3');
+        //console.log('创建陨石10，纹理:', 'meteor_test3');
         this.meteors.push(meteor10);
         
         // 增加一个在1900处大小为200%落后120°的陨石
@@ -363,7 +364,7 @@ export class ScenePulsar extends GenericScene {
         meteor11.setOrbitRadius(1900);
         meteor11.setScale(0.144); // 0.072 * 2.0
         meteor11.orbitAngle = -Math.PI * (120 / 180); // 落后120°
-        console.log('创建陨石11，纹理:', 'meteor_test4');
+        //console.log('创建陨石11，纹理:', 'meteor_test4');
         this.meteors.push(meteor11);
         
         // 增加一个在1000处大小为130%落后100°的陨石
@@ -372,7 +373,7 @@ export class ScenePulsar extends GenericScene {
         meteor12.setOrbitRadius(1000);
         meteor12.setScale(0.0936); // 0.072 * 1.3
         meteor12.orbitAngle = -Math.PI * (100 / 180); // 落后100°
-        console.log('创建陨石12，纹理:', 'meteor_test');
+        //console.log('创建陨石12，纹理:', 'meteor_test');
         this.meteors.push(meteor12);
         
         // 增加一个在2400处大小为180%落后10°的陨石
@@ -381,7 +382,7 @@ export class ScenePulsar extends GenericScene {
         meteor13.setOrbitRadius(2400);
         meteor13.setScale(0.1296); // 0.072 * 1.8
         meteor13.orbitAngle = -Math.PI * (10 / 180); // 落后10°
-        console.log('创建陨石13，纹理:', 'meteor_test4');
+        //console.log('创建陨石13，纹理:', 'meteor_test4');
         this.meteors.push(meteor13);
         
         // 增加一个在3000处大小为300%提前120°的陨石
@@ -390,7 +391,7 @@ export class ScenePulsar extends GenericScene {
         meteor14.setOrbitRadius(3000);
         meteor14.setScale(0.216); // 0.072 * 3.0
         meteor14.orbitAngle = Math.PI * (120 / 180); // 提前120°
-        console.log('创建陨石14，纹理:', 'meteor_test3');
+        //console.log('创建陨石14，纹理:', 'meteor_test3');
         this.meteors.push(meteor14);
         
         // 增加一个在2800处大小为40%落后20°的陨石
@@ -399,7 +400,7 @@ export class ScenePulsar extends GenericScene {
         meteor15.setOrbitRadius(2800);
         meteor15.setScale(0.0288); // 0.072 * 0.4
         meteor15.orbitAngle = -Math.PI * (20 / 180); // 落后20°
-        console.log('创建陨石15，纹理:', 'meteor_test2');
+        //console.log('创建陨石15，纹理:', 'meteor_test2');
         this.meteors.push(meteor15);
         
         // 增加一个在2600处大小为80%落后200°的陨石
@@ -408,7 +409,7 @@ export class ScenePulsar extends GenericScene {
         meteor16.setOrbitRadius(2600);
         meteor16.setScale(0.0576); // 0.072 * 0.8
         meteor16.orbitAngle = -Math.PI * (200 / 180); // 落后200°
-        console.log('创建陨石16，纹理:', 'meteor_test4');
+        //console.log('创建陨石16，纹理:', 'meteor_test4');
         this.meteors.push(meteor16);
         
         // 增加一个在3100处大小为30%落后100°的陨石
@@ -417,7 +418,7 @@ export class ScenePulsar extends GenericScene {
         meteor17.setOrbitRadius(3100);
         meteor17.setScale(0.0216); // 0.072 * 0.3
         meteor17.orbitAngle = -Math.PI * (100 / 180); // 落后100°
-        console.log('创建陨石17，纹理:', 'meteor_test');
+        //console.log('创建陨石17，纹理:', 'meteor_test');
         this.meteors.push(meteor17);
         
         // 增加一个在2300处大小为60%落后240°的陨石
@@ -426,7 +427,7 @@ export class ScenePulsar extends GenericScene {
         meteor18.setOrbitRadius(2300);
         meteor18.setScale(0.0432); // 0.072 * 0.6
         meteor18.orbitAngle = -Math.PI * (240 / 180); // 落后240°
-        console.log('创建陨石18，纹理:', 'meteor_test3');
+        //console.log('创建陨石18，纹理:', 'meteor_test3');
         this.meteors.push(meteor18);
         
         // 增加一个在3500处大小为90%提前100°的陨石
@@ -435,7 +436,7 @@ export class ScenePulsar extends GenericScene {
         meteor19.setOrbitRadius(3500);
         meteor19.setScale(0.0648); // 0.072 * 0.9
         meteor19.orbitAngle = Math.PI * (100 / 180); // 提前100°
-        console.log('创建陨石19，纹理:', 'meteor_test2');
+        //console.log('创建陨石19，纹理:', 'meteor_test2');
         this.meteors.push(meteor19);
         
         // 增加一个在3700处大小为250%提前150°的陨石
@@ -444,7 +445,7 @@ export class ScenePulsar extends GenericScene {
         meteor20.setOrbitRadius(3700);
         meteor20.setScale(0.18); // 0.072 * 2.5
         meteor20.orbitAngle = Math.PI * (150 / 180); // 提前150°
-        console.log('创建陨石20，纹理:', 'meteor_test3');
+        //console.log('创建陨石20，纹理:', 'meteor_test3');
         this.meteors.push(meteor20);
         
         // 增加一个在4000处大小为110%提前200°的陨石
@@ -453,7 +454,7 @@ export class ScenePulsar extends GenericScene {
         meteor21.setOrbitRadius(4000);
         meteor21.setScale(0.0792); // 0.072 * 1.1
         meteor21.orbitAngle = Math.PI * (200 / 180); // 提前200°
-        console.log('创建陨石21，纹理:', 'meteor_test4');
+        //console.log('创建陨石21，纹理:', 'meteor_test4');
         this.meteors.push(meteor21);
         
         // 增加一个在4000处大小为50%提前90°的陨石
@@ -462,7 +463,7 @@ export class ScenePulsar extends GenericScene {
         meteor22.setOrbitRadius(4000);
         meteor22.setScale(0.036); // 0.072 * 0.5
         meteor22.orbitAngle = Math.PI * (90 / 180); // 提前90°
-        console.log('创建陨石22，纹理:', 'meteor_test');
+        //console.log('创建陨石22，纹理:', 'meteor_test');
         this.meteors.push(meteor22);
         
         // 增加一个在3800处大小为70%提前30°的陨石
@@ -471,7 +472,7 @@ export class ScenePulsar extends GenericScene {
         meteor23.setOrbitRadius(3800);
         meteor23.setScale(0.0504); // 0.072 * 0.7
         meteor23.orbitAngle = Math.PI * (30 / 180); // 提前30°
-        console.log('创建陨石23，纹理:', 'meteor_test2');
+        //console.log('创建陨石23，纹理:', 'meteor_test2');
         this.meteors.push(meteor23);
     }
     
@@ -483,7 +484,7 @@ export class ScenePulsar extends GenericScene {
         this.meteors.forEach(meteor => {
             // 使用半径检测碰撞
             if (this.checkCollisionWithMeteor(this.leader, meteor)) {
-                console.log('飞船与陨石碰撞！');
+                //console.log('飞船与陨石碰撞！');
                 // 飞船粘在陨石上
                 this.attachRocketToMeteor(this.leader, meteor);
             }
@@ -549,7 +550,7 @@ export class ScenePulsar extends GenericScene {
             }
         }
         
-        console.log('飞船已粘在陨石上！');
+        //console.log('飞船已粘在陨石上！');
     }
     
     // 更新粘附在陨石上的飞船位置
@@ -642,6 +643,7 @@ export class ScenePulsar extends GenericScene {
     }
 
     update(time, delta) {
+        
         if(this.isPaused === true) return;
         super.update(time, delta);
         this.ifSuccess();
@@ -670,6 +672,7 @@ export class ScenePulsar extends GenericScene {
         
         // 检测飞船与陨石的碰撞
         this.checkMeteorCollisions();
+        
     }
     
     // 检测飞船与光环的碰撞
@@ -692,7 +695,7 @@ export class ScenePulsar extends GenericScene {
             
             // 检查是否碰撞
             if (distance < rocketRadius + haloRadius && !halo.collided) {
-                console.log('飞船与光环碰撞，距离:', distance, '飞船半径:', rocketRadius, '光环半径:', haloRadius);
+                //console.log('飞船与光环碰撞，距离:', distance, '飞船半径:', rocketRadius, '光环半径:', haloRadius);
                 // 标记光环已碰撞，避免重复触发
                 halo.collided = true;
                 // 计算并应用向外的冲量
@@ -723,7 +726,7 @@ export class ScenePulsar extends GenericScene {
         const baseImpulse = 1890; // 冲量大小，减小到现在的60%
         const impulse = baseImpulse / Math.pow(distance / 100, 1.7); // 与距离成1.7倍反比，距离越小冲量增长越快
         
-        console.log('应用光环冲量，距离:', distance, '冲量大小:', impulse);
+        //console.log('应用光环冲量，距离:', distance, '冲量大小:', impulse);
         
         // 直接应用瞬时冲量，不使用持续冲量
         // 由于使用的是Verlet积分，速度是由position和previousPosition的差值计算的
@@ -742,7 +745,7 @@ export class ScenePulsar extends GenericScene {
         this.leader.x = this.leader.position.x;
         this.leader.y = this.leader.position.y;
         
-        console.log('冲量应用完成，previousPosition变化:', -impulseX, -impulseY);
+        //console.log('冲量应用完成，previousPosition变化:', -impulseX, -impulseY);
     }
 
     ifSuccess() {
@@ -787,7 +790,7 @@ export class UIScenePulsar extends GenericUIScene {
         // 如果已经有白屏效果在进行中，不重复触发
         if (this.whiteoutEffect) return;
         
-        console.log('触发白屏效果');
+        //console.log('触发白屏效果');
         
         // 创建全屏白色覆盖层
         const screenWidth = this.cameras.main.width;
@@ -816,7 +819,7 @@ export class UIScenePulsar extends GenericUIScene {
                     // 动画完成后销毁白屏效果
                     this.whiteoutEffect.destroy();
                     this.whiteoutEffect = null;
-                    console.log('白屏效果结束');
+                    //console.log('白屏效果结束');
                 }
             });
         });
@@ -893,27 +896,27 @@ export class UIScenePulsar extends GenericUIScene {
     
     // 开始生成闪屏效果
     startGeneratingFlashes() {
-        console.log('开始生成闪屏效果');
+        //console.log('开始生成闪屏效果');
         
         // 定义第一个生成机制的函数（频率降低50%，闪屏大小上限增加30%，下限升高40%）
         const scheduleNextFlash1 = () => {
-            console.log('触发光屏生成（机制1）');
+            //console.log('触发光屏生成（机制1）');
             this.generateFlash(35, 364); // 下限升高40%，上限增加30%
             
             // 随机延迟后再次生成闪屏，频率增加到现在的160%
             const nextDelay = Phaser.Math.Between(109, 547); // 175-875ms 增加到现在的160%
-            console.log('调度下一次闪屏生成（机制1），延迟:', nextDelay, 'ms');
+            //console.log('调度下一次闪屏生成（机制1），延迟:', nextDelay, 'ms');
             this.time.delayedCall(nextDelay, scheduleNextFlash1, [], this);
         };
         
         // 定义第二个生成机制的函数（频率增加60%，闪屏大小上限降低20%，下限降低40%）
         const scheduleNextFlash2 = () => {
-            console.log('触发光屏生成（机制2）');
+            //console.log('触发光屏生成（机制2）');
             this.generateFlash(4, 40); // 下限降低40%，上限降低20%
             
             // 随机延迟后再次生成闪屏，频率降低到现在的50%
             const nextDelay = Phaser.Math.Between(52, 262); // 26-131ms 降低到现在的50%
-            console.log('调度下一次闪屏生成（机制2），延迟:', nextDelay, 'ms');
+            //console.log('调度下一次闪屏生成（机制2），延迟:', nextDelay, 'ms');
             this.time.delayedCall(nextDelay, scheduleNextFlash2, [], this);
         };
         
@@ -922,12 +925,12 @@ export class UIScenePulsar extends GenericUIScene {
         
         // 调度第一个生成机制
         const initialDelay1 = Phaser.Math.Between(109, 547); // 增加到现在的160%
-        console.log('调度下一次闪屏生成（机制1），初始延迟:', initialDelay1, 'ms');
+        //console.log('调度下一次闪屏生成（机制1），初始延迟:', initialDelay1, 'ms');
         this.time.delayedCall(initialDelay1, scheduleNextFlash1, [], this);
         
         // 调度第二个生成机制
         const initialDelay2 = Phaser.Math.Between(52, 262); // 降低到现在的50%
-        console.log('调度下一次闪屏生成（机制2），初始延迟:', initialDelay2, 'ms');
+        //console.log('调度下一次闪屏生成（机制2），初始延迟:', initialDelay2, 'ms');
         this.time.delayedCall(initialDelay2, scheduleNextFlash2, [], this);
     }
     
@@ -958,7 +961,7 @@ export class UIScenePulsar extends GenericUIScene {
         const rotationAngles = [0, Math.PI/2, Math.PI, 3*Math.PI/2];
         const rotation = rotationAngles[Phaser.Math.Between(0, 3)];
         
-        console.log('生成闪屏效果，位置:', x, y, '大小:', size, '持续时间:', duration, 'ms', '色调:', hue, '饱和度:', saturation, '亮度:', lightness, '旋转角度:', rotation);
+        //console.log('生成闪屏效果，位置:', x, y, '大小:', size, '持续时间:', duration, 'ms', '色调:', hue, '饱和度:', saturation, '亮度:', lightness, '旋转角度:', rotation);
         
         // 创建闪屏精灵
         const flash = this.add.sprite(x, y, 'flash_1');
@@ -983,7 +986,7 @@ export class UIScenePulsar extends GenericUIScene {
         
         // 添加到闪屏数组
         this.flashes.push(flash);
-        console.log('闪屏已添加到数组，当前闪屏数量:', this.flashes.length);
+        //console.log('闪屏已添加到数组，当前闪屏数量:', this.flashes.length);
         
         // 快速随机切换帧以达到闪屏效果
         let elapsedTime = 0;
@@ -1027,19 +1030,22 @@ export class UIScenePulsar extends GenericUIScene {
         const index = this.flashes.indexOf(flash);
         if (index !== -1) {
             this.flashes.splice(index, 1);
-            console.log('闪屏已销毁，剩余闪屏数量:', this.flashes.length);
+            //console.log('闪屏已销毁，剩余闪屏数量:', this.flashes.length);
         }
         
         // 销毁闪屏精灵
         flash.destroy();
     }
-
+    update(time, delta) {
+        super.update(time, delta);
+        this.updateArrowPosition();
+    }
     // 更新箭头位置和方向
     updateArrowPosition() {
         if (!this.mainScene || !this.mainScene.leader || this.mainScene.planets.length === 0) {
             if (this.gravityArrow) {
                 this.gravityArrow.visible = false;
-                console.log('Arrow hidden: missing mainScene, leader, or planets');
+                //console.log('Arrow hidden: missing mainScene, leader, or planets');
             }
             return;
         }
@@ -1095,13 +1101,7 @@ export class UIScenePulsar extends GenericUIScene {
         
         // 确保箭头可见
         this.gravityArrow.visible = true;
-        console.log('Arrow updated: position=', arrowX, arrowY, 'rotation=', angle, 'scale=', arrowScale, 'radius=', radius, 'cameraZoom=', cameraZoom);
-    }
-
-    // 重写update方法，更新箭头位置和方向
-    update(time, delta) {
-        super.update(time, delta);
-        this.updateArrowPosition();
+        //console.log('Arrow updated: position=', arrowX, arrowY, 'rotation=', angle, 'scale=', arrowScale, 'radius=', radius, 'cameraZoom=', cameraZoom);
     }
 
     showSuccessAreaOverlay() {
@@ -1128,7 +1128,7 @@ export class UIScenePulsar extends GenericUIScene {
             this.overlays = [];
         }
         if(!this.cameras || !this.cameras.main) {
-            console.log('camera unset.');
+            //console.log('camera unset.');
         }
         const screenWidth = this.cameras.main.width;
         const screenHeight = this.cameras.main.height;

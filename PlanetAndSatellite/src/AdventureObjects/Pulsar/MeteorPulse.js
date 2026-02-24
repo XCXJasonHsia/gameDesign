@@ -24,22 +24,22 @@ export class MeteorPulse extends GenericSatellite {
         // 确保陨石可见
         this.visible = true;
         
-        console.log('陨石创建成功，位置:', this.x, this.y);
-        console.log('陨石纹理:', this.texture.key);
-        console.log('陨石大小:', this.displayWidth, this.displayHeight);
-        console.log('陨石可见性:', this.visible);
+        //console.log('陨石创建成功，位置:', this.x, this.y);
+        //console.log('陨石纹理:', this.texture.key);
+        //console.log('陨石大小:', this.displayWidth, this.displayHeight);
+        //console.log('陨石可见性:', this.visible);
         
         // 初始化静态纹理
         this.initializeAnimation();
-        
         // 初始化轨迹
+        this.container = scene.add.container();
         this.initializeTrail();
     }
     
     // 初始化静态纹理
     initializeAnimation() {
-        console.log('初始化陨石静态纹理');
-        console.log('陨石位置:', this.x, this.y);
+        //console.log('初始化陨石静态纹理');
+        //console.log('陨石位置:', this.x, this.y);
         
         // 调整陨石大小，缩小到现在的60%
         this.setScale(0.072);
@@ -49,15 +49,16 @@ export class MeteorPulse extends GenericSatellite {
         
         // 确保陨石可见
         this.visible = true;
-        console.log('陨石纹理:', this.texture.key);
-        console.log('陨石大小:', this.displayWidth, this.displayHeight);
-        console.log('陨石可见性:', this.visible);
+        //console.log('陨石纹理:', this.texture.key);
+        //console.log('陨石大小:', this.displayWidth, this.displayHeight);
+        //console.log('陨石可见性:', this.visible);
     }
     
     // 初始化轨迹
     initializeTrail() {
         this.trailGraphics = this.scene.add.graphics();
         this.trailGraphics.setDepth(5); // 轨迹在陨石下方
+        this.container.add(this.trailGraphics);
     }
     
     // 设置行星中心位置
@@ -116,7 +117,7 @@ export class MeteorPulse extends GenericSatellite {
         
         // 根据开普勒第三定律，轨道速度与距离的-3/2次方成正比
         this.orbitSpeed = baseSpeed * Math.pow(this.orbitRadius / baseRadius, -1.5);
-        console.log(`陨石轨道速度计算：距离=${this.orbitRadius}，速度=${this.orbitSpeed}`);
+        //console.log(`陨石轨道速度计算：距离=${this.orbitRadius}，速度=${this.orbitSpeed}`);
     }
     
     // 绘制轨迹红线
@@ -175,11 +176,6 @@ export class MeteorPulse extends GenericSatellite {
     
     // 销毁方法
     destroy() {
-        // 清理轨迹
-        if (this.trailGraphics) {
-            this.trailGraphics.destroy();
-        }
-        
         // 调用父类销毁方法
         super.destroy();
     }
