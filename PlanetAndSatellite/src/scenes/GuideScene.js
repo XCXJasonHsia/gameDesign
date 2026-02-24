@@ -118,14 +118,14 @@ export class GuideScene extends Phaser.Scene {
                 yoyo: true,
                 onComplete: () => {
                     // 跳回到个人准备界面，添加noFade参数避免过渡效果
-                    this.scene.start('PreparationSceneEg', { noFade: true });
+                    this.scene.start('PreparationScene', { noFade: true });
                 }
             });
         });
         
         // 键盘事件：按Enter键返回个人准备界面
         this.input.keyboard.on('keydown-ENTER', () => {
-            this.scene.start('PreparationSceneEg', { noFade: true });
+            this.scene.start('PreparationScene', { noFade: true });
         });
     }
 }

@@ -3,6 +3,8 @@ import { GenericRocket } from '../../generalClasses/GenericRocket.js';
 export class Rocket11 extends GenericRocket {
     constructor(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart, infiniteFuel) {
         super(scene, x, y, texture, targetPlanets, setHealthBar, radius,  gravitySystem, setRestart, infiniteFuel);
+        this.baseThrustPower = 200;
+        this.boostThrustPower = 300;
     }
 
     initializeVelocity() {
@@ -74,7 +76,7 @@ export class Rocket11 extends GenericRocket {
             tangent.normalize();
             
             // 设置初始速度
-            this.initialVelocity = tangent.scale(orbitalSpeed);
+            this.initialVelocity = tangent.scale(orbitalSpeed * 0.9);
         } catch(error) {
             console.error('Satellite:initializeVelocity failed.');
         }

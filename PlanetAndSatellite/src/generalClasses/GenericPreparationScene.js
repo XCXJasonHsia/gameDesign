@@ -364,7 +364,7 @@ export class GenericPreparationScene extends Phaser.Scene {
         
         // 添加"目前所在星球："文字
         // 先创建背景矩形
-        const planetBg = this.add.rectangle(20, this.cameras.main.height - 155, 185, 100, 0x000000, 0.5);
+        const planetBg = this.add.rectangle(20, this.cameras.main.height - 155, 220, 100, 0x000000, 0.5);
         planetBg.setStrokeStyle(2, 0xffffff, 0.8);
         planetBg.setOrigin(0, 0);
         
@@ -375,6 +375,9 @@ export class GenericPreparationScene extends Phaser.Scene {
             fontFamily: 'Arial, sans-serif'
         });
         planetText.setOrigin(0, 0);
+        
+        // 添加行星名称显示
+        this.updateCurrentPlanetDisplay();
         
         // 键盘事件：按Enter键返回主界面
         this.input.keyboard.on('keydown-ENTER', () => {
@@ -389,5 +392,41 @@ export class GenericPreparationScene extends Phaser.Scene {
                 }
             });
         });
+    }
+
+    // 更新当前所在行星显示
+    updateCurrentPlanetDisplay() {
+        // 行星名称映射
+        const planetNames = {
+            0: '起源',
+            1: '广袤星带',
+            2: '绿洲星',
+            3: '脉冲星',
+            4: '余烬星',
+            5: '双星',
+            6: '神盾星',
+            7: '故土星域',
+            8: '终焉之洞'
+        };
+        
+        // 获取选中的星星索引
+        const selectedStarIndex = localStorage.getItem('selectedStarIndex');
+        let planetName = 'home planet';
+        
+        // 如果有选中的星星，获取对应的行星名称
+        if (selectedStarIndex !== null) {
+            const index = parseInt(selectedStarIndex);
+            if (planetNames[index]) {
+                planetName = planetNames[index];
+            }
+        }
+        
+        // 添加行星名称文字
+        const planetNameText = this.add.text(30, this.cameras.main.height - 105, planetName, {
+            fontSize: '20px',
+            fill: '#ffff00',
+            fontFamily: 'Arial, sans-serif'
+        });
+        planetNameText.setOrigin(0, 0);
     }
 }

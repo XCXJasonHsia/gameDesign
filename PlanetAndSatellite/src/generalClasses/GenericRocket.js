@@ -182,8 +182,8 @@ export class GenericRocket extends GenericSatellite {
         this.controlKeys = keys;
         
         // 存储初始推力值
-        this.baseThrustPower = 100;
-        this.boostThrustPower = 200;
+        this.baseThrustPower = this.thrustPower;
+        this.boostThrustPower = this.thrustPower * 2;
     }
 
     update(time, delta) {

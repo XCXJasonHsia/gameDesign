@@ -37,14 +37,16 @@ export class SurfaceplayScene extends Phaser.Scene {
     create() {
         // 创建五倍宽度的背景
         const skyWidth = 800 * 5;
-        const sky = this.add.image(skyWidth / 2, 300, 'sky').setScale(5, 1);
+        // 使用livableplanetbg作为背景，并调整大小与原来一致
+        const sky = this.add.image(skyWidth / 2, 300, 'livableplanetbg').setScale(5*4000/1849, 3);
         
         this.platforms = this.physics.add.staticGroup();
 
         // 创5个平台相互拼接，每个平台宽度为400
         for (let i = 0; i < 5; i++) {
             const x =400 + i * 800;
-            this.platforms.create(x, 568, 'ground').setScale(2).refreshBody();
+            // 使用livableplanetground作为平台，并调整大小与原来一致
+            this.platforms.create(x, 568, 'livableplanetground').setScale(2*416/383, 2).refreshBody();
         }
         
         // 添加一些平台
@@ -308,7 +310,7 @@ export class SurfaceplayScene extends Phaser.Scene {
         this.removePauseOverlay();
         
         // 启动个人准备界面场景
-        this.scene.start('PreparationSceneEg', {
+        this.scene.start('PreparationScene', {
                     fromScene: 'SurfaceplayScene'
                 });
     }

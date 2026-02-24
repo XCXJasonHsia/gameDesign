@@ -57,7 +57,7 @@ export class MapScene extends Phaser.Scene {
                 ease: 'Power2',
                 onComplete: () => {
                     // 跳转到个人准备界面
-                    this.scene.start('PreparationSceneEg', {});
+                    this.scene.start('PreparationScene', {});
                 }
             });
         });
@@ -167,7 +167,7 @@ export class MapScene extends Phaser.Scene {
                 duration: 300,
                 ease: 'Power2',
                 onComplete: () => {
-                    this.scene.start('PreparationSceneEg', {});
+                    this.scene.start('PreparationScene', {});
                 }
             });
         });
@@ -175,27 +175,42 @@ export class MapScene extends Phaser.Scene {
     
     // 选择点的方法
     selectPoint(point) {
-        // 重置所有点为白色和原始大小
-        for (let p of this.constellationPoints) {
-            p.fillColor = 0xffffff;
-            p.setRadius(5);
+        // 检查当前点击的点是否已经是选中的点
+        if (this.selectedPoint === point) {
+            // 取消选中状态
+            point.fillColor = 0xffffff;
+            point.setRadius(5);
+            this.selectedPoint = null;
+            
+            // 隐藏绿圈
+            this.greenCircle.visible = false;
+            
+            // 从localStorage中删除选中的点信息
+            localStorage.removeItem('selectedConstellationPoint');
+            localStorage.removeItem('selectedStarIndex');
+        } else {
+            // 重置所有点为白色和原始大小
+            for (let p of this.constellationPoints) {
+                p.fillColor = 0xffffff;
+                p.setRadius(5);
+            }
+            
+            // 选择当前点为绿色并设置为原始大小
+            point.fillColor = 0x00ff00;
+            point.setRadius(5);
+            this.selectedPoint = point;
+            
+            // 显示绿圈并移动到选中点
+            this.greenCircle.x = point.x;
+            this.greenCircle.y = point.y;
+            this.greenCircle.visible = true;
+            
+            // 保存选中点的信息
+            this.saveSelectedPoint(point);
+            
+            // 保存选中点的索引到localStorage，用于后续进入对应的关卡
+            localStorage.setItem('selectedStarIndex', point.index.toString());
         }
-        
-        // 选择当前点为绿色并设置为原始大小
-        point.fillColor = 0x00ff00;
-        point.setRadius(5);
-        this.selectedPoint = point;
-        
-        // 显示绿圈并移动到选中点
-        this.greenCircle.x = point.x;
-        this.greenCircle.y = point.y;
-        this.greenCircle.visible = true;
-        
-        // 保存选中点的信息
-        this.saveSelectedPoint(point);
-        
-        // 保存选中点的索引到localStorage，用于后续进入对应的关卡
-        localStorage.setItem('selectedStarIndex', point.index.toString());
         
         // 星图只起到记录位置的作用，点击星星后不退出星图界面
         // 保持星图的正常显示
