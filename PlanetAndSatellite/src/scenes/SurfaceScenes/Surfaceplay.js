@@ -1,5 +1,7 @@
 import { Player } from '../../PlayerObjects/Player/Player.js'
 import { NPC } from '../../PlayerObjects/NPC.js'
+import { OilWell } from '../../GameObjects/OilWell.js'
+import { Shop } from '../../GameObjects/Shop.js'
 
 export class SurfaceplayScene extends Phaser.Scene {
     constructor() {
@@ -12,6 +14,17 @@ export class SurfaceplayScene extends Phaser.Scene {
         this.cameraZoom = 1;
         this.cameraFollow = true;
         this.videoPlayed = false; // 标记是否已经播放过视频
+        // 油井相关变量
+        this.oilWells = [];
+        this.nearOilWell = null;
+        this.isDrilling = false;
+        this.totalOil = 0;
+        // 商店相关变量
+        this.shop = null;
+        this.nearShop = false;
+        this.shopUI = null;
+        this.fKey = null;
+        this.eKey = null;
     }
 
     // 场景初始化方法，每次进入场景时都会调用
@@ -32,6 +45,17 @@ export class SurfaceplayScene extends Phaser.Scene {
         this.rocket = null;
         this.rockets = null;
         this.cursors = null;
+        // 重置油井相关变量
+        this.oilWells = [];
+        this.nearOilWell = null;
+        this.isDrilling = false;
+        this.totalOil = 0;
+        // 重置商店相关变量
+        this.shop = null;
+        this.nearShop = false;
+        this.shopUI = null;
+        this.fKey = null;
+        this.eKey = null;
     }
 
     create() {
@@ -91,6 +115,52 @@ export class SurfaceplayScene extends Phaser.Scene {
         for (const npc of this.npcs) {
             this.physics.add.collider(npc, this.platforms);
         }
+        
+        // Create oil wells
+        this.oilWells = [];
+        this.oilWell1 = new OilWell(this, 300, 450);
+        this.oilWells.push(this.oilWell1);
+        
+        // Set up collisions for oil well
+        this.physics.add.collider(this.player, this.oilWell1.sprite);
+        this.physics.add.collider(this.platforms, this.oilWell1.sprite);
+        
+        // Create shop
+        this.shop = new Shop(this, 2000, 450);
+        
+        // Set up collision for shop
+        this.physics.add.collider(this.player, this.shop.sprite);
+        this.physics.add.collider(this.platforms, this.shop.sprite);
+        
+        // Shop interaction system
+        this.nearShop = false;
+        this.shopUI = null;
+        this.shopText = this.add.text(16, 70, '按F键打开商店', {
+            fontSize: '14px',
+            fill: '#000'
+        });
+        this.shopText.setScrollFactor(0);
+        this.shopText.setVisible(false);
+        this.fKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.F);
+        
+        // Oil collection system
+        this.nearOilWell = null;
+        this.isDrilling = false;
+        
+        // UI for oil display
+        this.oilText = this.add.text(16, 16, 'Oil: 0', {
+            fontSize: '18px',
+            fill: '#000'
+        });
+        this.oilText.setScrollFactor(0);
+        
+        this.drillText = this.add.text(16, 40, 'Press E to drill oil', {
+            fontSize: '14px',
+            fill: '#000'
+        });
+        this.drillText.setScrollFactor(0);
+        this.drillText.setVisible(false);
+        this.eKey = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.E);
         
         // 调整世界边界到背景大小
         this.physics.world.setBounds(0, 0, skyWidth, 600);
@@ -263,6 +333,30 @@ export class SurfaceplayScene extends Phaser.Scene {
                 }
             }
         }
+        
+        // Check for shop interaction
+        this.checkShopProximity();
+        
+        // Handle shop opening
+        if (Phaser.Input.Keyboard.JustDown(this.fKey) && this.nearShop && !this.shopUI) {
+            this.openShop();
+        }
+        
+        // Check for oil well interaction
+        this.checkOilWellProximity();
+        
+        // Handle drilling
+        if (Phaser.Input.Keyboard.JustDown(this.eKey) && this.nearOilWell && !this.isDrilling) {
+            this.startDrilling();
+        }
+        
+        // Update oil wells
+        this.oilWells.forEach(oilWell => {
+            const drilled = oilWell.update(time, delta);
+            if (drilled) {
+                this.collectOilFromWell(oilWell);
+            }
+        });
     }
 
     gamePause() {
@@ -405,6 +499,16 @@ export class SurfaceplayScene extends Phaser.Scene {
             this.npcs = [];
         }
         
+        // 清理油井
+        if (this.oilWells) {
+            this.oilWells = [];
+        }
+        
+        // 清理商店UI
+        if (this.shopUI) {
+            this.closeShop();
+        }
+        
         // 移除键盘事件监听器
         if (this.input && this.input.keyboard) {
             this.input.keyboard.off('keydown-ESC', this.gamePause, this);
@@ -421,6 +525,293 @@ export class SurfaceplayScene extends Phaser.Scene {
         
         // 调用父类的destroy方法
         super.destroy();
+    }
+    
+    // 商店相关方法
+    checkShopProximity() {
+        if (this.shop) {
+            const distance = Phaser.Math.Distance.Between(
+                this.player.x, this.player.y, 
+                this.shop.sprite.x, this.shop.sprite.y
+            );
+            
+            if (distance < 100) {
+                this.nearShop = true;
+                this.shopText.setVisible(true);
+            } else {
+                this.nearShop = false;
+                this.shopText.setVisible(false);
+                // 如果玩家远离商店，关闭商店UI
+                if (this.shopUI) {
+                    this.closeShop();
+                }
+            }
+        }
+    }
+    
+    openShop() {
+        if (!this.shopUI && this.shop) {
+            // 创建商店UI容器
+            this.shopUI = this.add.container();
+            
+            // 创建商店背景
+            const background = this.add.rectangle(
+                this.cameras.main.width / 2,
+                this.cameras.main.height / 2,
+                600,
+                400,
+                0x000000,
+                0.8
+            );
+            background.setScrollFactor(0);
+            this.shopUI.add(background);
+            
+            // 创建商店标题
+            const title = this.add.text(
+                this.cameras.main.width / 2,
+                this.cameras.main.height / 2 - 150,
+                '商店',
+                {
+                    fontSize: '24px',
+                    fill: '#ffffff',
+                    fontWeight: 'bold'
+                }
+            );
+            title.setOrigin(0.5);
+            title.setScrollFactor(0);
+            this.shopUI.add(title);
+            
+            // 创建油数量显示
+            const oilDisplay = this.add.text(
+                this.cameras.main.width / 2,
+                this.cameras.main.height / 2 - 100,
+                `当前油: ${this.totalOil}`,
+                {
+                    fontSize: '16px',
+                    fill: '#ffffff'
+                }
+            );
+            oilDisplay.setOrigin(0.5);
+            oilDisplay.setScrollFactor(0);
+            this.shopUI.add(oilDisplay);
+            
+            // 获取升级信息
+            const upgrades = this.shop.getAllUpgrades();
+            let yOffset = -40;
+            
+            // 创建升级选项
+            Object.keys(upgrades).forEach((key, index) => {
+                const upgrade = upgrades[key];
+                const buttonY = this.cameras.main.height / 2 + yOffset + index * 80;
+                
+                // 创建升级按钮
+                const button = this.add.rectangle(
+                    this.cameras.main.width / 2,
+                    buttonY,
+                    500,
+                    60,
+                    0x333333,
+                    1
+                );
+                button.setScrollFactor(0);
+                button.setInteractive();
+                this.shopUI.add(button);
+                
+                // 创建商品图标
+                let iconKey = 'bomb'; // 默认图标
+                switch(key) {
+                    case 'coolingModule':
+                        iconKey = 'cooldownmodule'; // 瞬冷脉冲模组图标
+                        break;
+                    case 'fuelTank':
+                        iconKey = 'fuelmodule'; // 无尽航迹燃料舱图标
+                        break;
+                    case 'engineBooster':
+                        iconKey = 'speeding_upmodule'; // 跃迁核心加速器图标
+                        break;
+                }
+                const icon = this.add.image(
+                    this.cameras.main.width / 2 - 280,
+                    buttonY,
+                    iconKey
+                );
+                icon.setScale(0.05);
+                icon.setScrollFactor(0);
+                this.shopUI.add(icon);
+                
+                // 创建升级信息文本
+                const upgradeText = this.add.text(
+                    this.cameras.main.width / 2 - 230,
+                    buttonY - 20,
+                    `${upgrade.name} (Lv.${upgrade.level}/${upgrade.maxLevel})\n${upgrade.description}`,
+                    {
+                        fontSize: '14px',
+                        fill: '#ffffff',
+                        wordWrap: {
+                            width: 300
+                        }
+                    }
+                );
+                upgradeText.setScrollFactor(0);
+                this.shopUI.add(upgradeText);
+                
+                // 创建价格文本
+                const priceText = this.add.text(
+                    this.cameras.main.width / 2 + 150,
+                    buttonY,
+                    `价格: ${upgrade.price}`,
+                    {
+                        fontSize: '16px',
+                        fill: '#ffff00'
+                    }
+                );
+                priceText.setOrigin(0.5);
+                priceText.setScrollFactor(0);
+                this.shopUI.add(priceText);
+                
+                // 添加按钮点击事件
+                button.on('pointerdown', () => {
+                    this.buyUpgrade(key);
+                });
+            });
+            
+            // 创建关闭按钮
+            const closeButton = this.add.rectangle(
+                this.cameras.main.width / 2,
+                this.cameras.main.height / 2 + 150,
+                200,
+                50,
+                0x666666,
+                1
+            );
+            closeButton.setScrollFactor(0);
+            closeButton.setInteractive();
+            this.shopUI.add(closeButton);
+            
+            const closeText = this.add.text(
+                this.cameras.main.width / 2,
+                this.cameras.main.height / 2 + 150,
+                '关闭',
+                {
+                    fontSize: '16px',
+                    fill: '#ffffff'
+                }
+            );
+            closeText.setOrigin(0.5);
+            closeText.setScrollFactor(0);
+            this.shopUI.add(closeText);
+            
+            closeButton.on('pointerdown', () => {
+                this.closeShop();
+            });
+        }
+    }
+    
+    closeShop() {
+        if (this.shopUI) {
+            this.shopUI.destroy();
+            this.shopUI = null;
+        }
+    }
+    
+    buyUpgrade(upgradeKey) {
+        if (this.shop && this.shop.isActive) {
+            const upgrade = this.shop.upgrades[upgradeKey];
+            if (this.shop.canBuyUpgrade(upgradeKey, this.totalOil)) {
+                const price = this.shop.buyUpgrade(upgradeKey);
+                this.totalOil -= price;
+                this.updateOilText();
+                
+                // 关闭并重新打开商店UI以更新信息
+                this.closeShop();
+                this.openShop();
+                
+                // 显示购买成功消息
+                const successText = this.add.text(
+                    this.cameras.main.width / 2,
+                    this.cameras.main.height / 2 - 180,
+                    `购买成功！${upgrade.name} 升级到 Lv.${upgrade.level}`,
+                    {
+                        fontSize: '16px',
+                        fill: '#00ff00'
+                    }
+                );
+                successText.setOrigin(0.5);
+                successText.setScrollFactor(0);
+                this.shopUI.add(successText);
+                
+                // 2秒后移除成功消息
+                this.time.delayedCall(2000, () => {
+                    if (successText && successText.active) {
+                        successText.destroy();
+                    }
+                });
+            } else {
+                // 显示购买失败消息
+                const failText = this.add.text(
+                    this.cameras.main.width / 2,
+                    this.cameras.main.height / 2 - 180,
+                    '油不足或已达到最高等级！',
+                    {
+                        fontSize: '16px',
+                        fill: '#ff0000'
+                    }
+                );
+                failText.setOrigin(0.5);
+                failText.setScrollFactor(0);
+                this.shopUI.add(failText);
+                
+                // 2秒后移除失败消息
+                this.time.delayedCall(2000, () => {
+                    if (failText && failText.active) {
+                        failText.destroy();
+                    }
+                });
+            }
+        }
+    }
+    
+    // 油井相关方法
+    checkOilWellProximity() {
+        let foundWell = null;
+        
+        this.oilWells.forEach(oilWell => {
+            if (oilWell.isActive && Phaser.Math.Distance.Between(
+                this.player.x, this.player.y, 
+                oilWell.sprite.x, oilWell.sprite.y) < 100) {
+                foundWell = oilWell;
+            }
+        });
+        
+        if (foundWell !== this.nearOilWell) {
+            this.nearOilWell = foundWell;
+            this.drillText.setVisible(!!foundWell);
+        }
+    }
+    
+    startDrilling() {
+        if (this.nearOilWell && this.nearOilWell.isActive) {
+            this.isDrilling = true;
+            this.nearOilWell.startDrilling();
+            this.drillText.setText('Drilling...');
+        }
+    }
+    
+    collectOilFromWell(oilWell) {
+        const collectedOil = oilWell.collectOil();
+        if (collectedOil > 0) {
+            this.totalOil += collectedOil;
+            this.updateOilText();
+            this.drillText.setText('Oil collected! Press E to drill again');
+            this.isDrilling = false;
+        } else if (oilWell.isDepleted()) {
+            this.drillText.setText('Oil well depleted!');
+            this.isDrilling = false;
+        }
+    }
+    
+    updateOilText() {
+        this.oilText.setText(`Oil: ${this.totalOil}`);
     }
         
     gameOver() {
