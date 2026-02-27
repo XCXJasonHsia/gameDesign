@@ -313,7 +313,7 @@ export class SceneEarth extends GenericScene {
 export class UISceneEarth extends GenericUIScene {
     constructor() {
         super('UISceneEarth');
-        this.tutorialStep = 3;
+        this.tutorialStep = 0;
         this.tutorialText = null;
         this.collisionHintText = null;
         this.tutorialSteps = [
