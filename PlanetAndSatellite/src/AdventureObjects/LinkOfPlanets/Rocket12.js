@@ -66,15 +66,15 @@ export class Rocket12 extends GenericRocket {
             
             // 计算切向方向（垂直于径向）
             const tangent = new Phaser.Math.Vector2(
-                -toPlanet.y / displayDistance,
-                toPlanet.x / displayDistance
+                toPlanet.y / displayDistance,
+                -toPlanet.x / displayDistance
             );
             
             // 确保切向向量归一化
             tangent.normalize();
             
             // 设置初始速度
-            this.initialVelocity = tangent.scale(orbitalSpeed * 3);
+            this.initialVelocity = tangent.scale(orbitalSpeed * 2);
         } catch(error) {
             console.error('Satellite:initializeVelocity failed.');
         }

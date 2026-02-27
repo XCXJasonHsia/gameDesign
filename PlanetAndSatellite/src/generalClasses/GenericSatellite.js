@@ -668,7 +668,7 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
         // 根据powerManipulation决定使用哪个幂律值和G值
         const powerManipulation = this.gravitySystem && this.gravitySystem.scene ? this.gravitySystem.scene.powerManipulation : false;
         const power = !powerManipulation ? planet.power : (this.gravitySystem ? this.gravitySystem.getPlanetPower(planet) : planet.power);
-        const G = !powerManipulation ? (planet.G || this.G) : (this.gravitySystem ? this.gravitySystem.G : (planet.G || this.G));
+        const G = !powerManipulation ? (planet.G !== undefined ? planet.G : this.G) : (this.gravitySystem ? this.gravitySystem.G : (planet.G !== undefined ? planet.G : this.G));
         
         // 根据幂律计算加速度（使用物理距离）
         let accMagnitude;

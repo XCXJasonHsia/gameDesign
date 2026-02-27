@@ -27,6 +27,7 @@ export class Preloader extends Phaser.Scene {
         this.load.setPath('assets');
         this.load.image('bg', 'bg.png');
         this.load.image('bg2', 'bg2.png');
+        this.load.image('bg3', 'bg3.png');
         this.load.image('bg11', 'bg11.png');
         this.load.image('pulse_planet', 'pulse/pulse_planet.png');
         this.load.image('pulse_flag', 'pulse/pulse_flag.png');
@@ -42,10 +43,13 @@ export class Preloader extends Phaser.Scene {
         this.load.image('scene1moon', 'EarthSceneAssets/scene1moon.png');
         this.load.image('scene1rocket', 'EarthSceneAssets/scene1rocket.png');
         this.load.image('scene1meatpie', 'EarthSceneAssets/scene1meatpie.png');
+
         this.load.image('planet_with_arrow_green', 'LinkOfPlanetsSceneAssets/planet_with_arrow_green.png');
         this.load.image('planet_with_arrow_orange', 'LinkOfPlanetsSceneAssets/planet_with_arrow_orange.png');
         this.load.image('planet_with_arrow_red', 'LinkOfPlanetsSceneAssets/planet_with_arrow_red.png');
         this.load.image('planet_with_arrow_yellow', 'LinkOfPlanetsSceneAssets/planet_with_arrow_yellow.png');
+        this.load.image('success_area', 'LinkOfPlanetsSceneAssets/success_area.png');
+        
         this.load.image('sky','SurfacePlaySceneAssets/sky.png');
         this.load.image('ground', 'SurfacePlaySceneAssets/platform.png');      
         this.load.image('star', 'SurfacePlaySceneAssets/star.png');
@@ -74,12 +78,17 @@ export class Preloader extends Phaser.Scene {
             'planet_angry_spriteSheet', 
             'planet_angry_spriteSheet.png',
             {frameWidth: 481, frameHeight: 500}
-            )
+            );
         this.load.spritesheet(
             'livable_planet_spriteSheet', 
             'Livable/livable_planet_spriteSheet.png',
             {frameWidth: 240, frameHeight: 240}
-            )
+            );
+        this.load.spritesheet(
+            'whirl', 
+            'LinkOfPlanetsSceneAssets/whirl.png',
+            {frameWidth: 500, frameHeight: 248}
+            );
         // 加载 broken_rocket_video_png 中的所有图片（按49到5的顺序）
         const frameFiles = [];
         for (let i = 49; i >= 5; i--) {

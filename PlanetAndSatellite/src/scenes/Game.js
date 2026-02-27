@@ -109,7 +109,7 @@ export class Game extends Phaser.Scene {
         });
         
         // 创建 Adventure 按钮
-        const adventureButton = this.add.text(400, 400, 'ScenePulsar', {
+        const adventureButton = this.add.text(400, 400, 'SceneLinkOfPlanets', {
             fontSize: '32px',
             fill: '#ffffff',
             backgroundColor: '#333333',
@@ -166,7 +166,7 @@ export class Game extends Phaser.Scene {
                         ease: 'Power2',
                         onComplete: () => {
                             // 切换到个人准备界面
-                            this.scene.start('ScenePulsar', {
+                            this.scene.start('SceneLinkOfPlanets', {
                                 fromScene: 'Game',
                                 previousState: this.previousState
                             });
