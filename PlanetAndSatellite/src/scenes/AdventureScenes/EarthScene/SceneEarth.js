@@ -345,9 +345,24 @@ export class UISceneEarth extends GenericUIScene {
             const step = this.tutorialSteps[this.tutorialStep];
             this.createTutorialText(step.text);
             
-            // 添加对应按键的监听
-            this.input.keyboard.once(`keydown-${step.key}`, () => {
-                this.hideTutorialText();
+            // 移除之前的所有键盘监听
+            this.input.keyboard.removeAllListeners();
+            
+            // 第一个步骤：按下任何键都跳转到下一个提示语
+            if (this.tutorialStep === 0) {
+                this.input.keyboard.once('keydown', () => {
+                    this.hideTutorialText();
+                });
+            } else {
+                // 其他步骤：监听对应按键
+                this.input.keyboard.once(`keydown-${step.key}`, () => {
+                    this.hideTutorialText();
+                });
+            }
+            
+            // 添加R键监听，按下R键重新显示当前提示语
+            this.input.keyboard.on('keydown-R', () => {
+                this.createTutorialText(step.text);
             });
         }
     }
@@ -539,9 +554,16 @@ export class UISceneEarth extends GenericUIScene {
         this.successText.setScrollFactor(0);
         this.successText.setDepth(1001);
 
+        // 记录场景完成状态
+        const completedScenes = JSON.parse(localStorage.getItem('completedScenes') || '[]');
+        if (!completedScenes.includes('SceneEarth')) {
+            completedScenes.push('SceneEarth');
+            localStorage.setItem('completedScenes', JSON.stringify(completedScenes));
+        }
+
         this.time.delayedCall(3000, () => {
                     this.scene.stop('SceneEarth')
-                    this.scene.start('Game');
+                    this.scene.start('MapScene', { mode: localStorage.getItem('mapSceneMode') || 'adventure' });
                 });
     }
 

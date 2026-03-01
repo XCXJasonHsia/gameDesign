@@ -50,6 +50,7 @@ export class Preloader extends Phaser.Scene {
         this.load.image('planet_with_arrow_yellow', 'LinkOfPlanetsSceneAssets/planet_with_arrow_yellow.png');
         this.load.image('success_area', 'LinkOfPlanetsSceneAssets/success_area.png');
         
+        
         this.load.image('sky','SurfacePlaySceneAssets/sky.png');
         this.load.image('ground', 'SurfacePlaySceneAssets/platform.png');      
         this.load.image('star', 'SurfacePlaySceneAssets/star.png');

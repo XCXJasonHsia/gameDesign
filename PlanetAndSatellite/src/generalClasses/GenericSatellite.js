@@ -306,8 +306,8 @@ export class GenericSatellite extends Phaser.Physics.Arcade.Sprite {
             // 跳过自身
             if (otherSatellite === this) continue;
             
-            // 跳过已经粘附或销毁的卫星
-            if (otherSatellite.isAttached || !otherSatellite.active) continue;
+            // 跳过已销毁的卫星，但允许与已粘附的卫星碰撞
+            if (!otherSatellite.active) continue;
             
             // 检查碰撞
             if (this.checkCollisionWithSatellite(otherSatellite)) {

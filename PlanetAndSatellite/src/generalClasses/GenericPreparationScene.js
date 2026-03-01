@@ -116,26 +116,26 @@ export class GenericPreparationScene extends Phaser.Scene {
                             // 检查是否有选中的星星
                             const selectedStarIndex = localStorage.getItem('selectedStarIndex');
                             if (selectedStarIndex !== null) {
-                                // 根据选中的星星进入对应的关卡
+                                // 根据选中的星星进入对应的剧情解说场景
                                 const index = parseInt(selectedStarIndex);
                                 switch (index) {
                                     case 0: // 起源
-                                        this.scene.start('SceneEarth');
+                                        this.scene.start('IntroSceneEarth');
                                         break;
                                     case 1: // 广袤星带
-                                        this.scene.start('SceneLinkOfPlanets');
+                                        this.scene.start('IntroSceneLinkOfPlanets');
                                         break;
                                     case 2: // 绿洲星
-                                        this.scene.start('SceneLivable');
+                                        this.scene.start('IntroSceneLivable');
                                         break;
                                     case 3: // 脉冲星
-                                        this.scene.start('ScenePulsar');
+                                        this.scene.start('IntroScenePulsar');
                                         break;
                                     case 4: // 余烬星
                                         this.scene.start('AshesScene');
                                         break;
                                     case 5: // 双星
-                                        this.scene.start('SceneDualPlanets');
+                                        this.scene.start('IntroSceneDualPlanets');
                                         break;
                                     case 6: // 神盾星
                                         this.scene.start('AegisScene');
@@ -292,8 +292,8 @@ export class GenericPreparationScene extends Phaser.Scene {
                         duration: 300,
                         ease: 'Power2',
                         onComplete: () => {
-                            // 跳转到星图界面
-                            this.scene.start('MapScene', {});
+                            // 跳转到星图界面，传递当前模式
+                            this.scene.start('MapScene', { mode: localStorage.getItem('mapSceneMode') || 'adventure' });
                         }
                     });
                 }

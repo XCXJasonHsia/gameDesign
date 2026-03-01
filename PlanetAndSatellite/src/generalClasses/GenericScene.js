@@ -644,6 +644,7 @@ export class GenericUIScene extends Phaser.Scene {
     createCooldownDisplay() {
         // 获取屏幕宽度，用于定位到右上角
         const screenWidth = this.cameras.main.width;
+        const screenHeight = this.cameras.main.height;
         
         // 创建冷却时间显示文本，固定在屏幕右上角（稍微下移）
         this.cooldownText = this.add.text(
@@ -661,6 +662,35 @@ export class GenericUIScene extends Phaser.Scene {
         this.cooldownText.setDepth(1001);       // 确保在所有元素之上
         this.cooldownText.visible = false; // 初始隐藏
         this.UILayer.add(this.cooldownText); // 添加到UI层
+        
+        // 创建冷却状态的屏幕调灰覆盖层
+        this.cooldownOverlay = this.add.rectangle(
+            screenWidth / 2, screenHeight / 2,
+            screenWidth, screenHeight,
+            0x000000, 0.1 // 几乎完全透明
+        );
+        this.cooldownOverlay.setScrollFactor(0);
+        this.cooldownOverlay.setDepth(999); // 低于UI文本
+        this.cooldownOverlay.visible = false;
+        this.UILayer.add(this.cooldownOverlay);
+        
+        // 创建中间显示的跳动冷却时间文本
+        this.cooldownCenterText = this.add.text(
+            screenWidth / 2, screenHeight / 4, // 放置在画面上侧
+            '',
+            {
+                fontSize: '48px',
+                fill: '#ffffff', // 白色
+                fontWeight: 'bold',
+                backgroundColor: '#00000080',
+                padding: { x: 20, y: 10 }
+            }
+        );
+        this.cooldownCenterText.setOrigin(0.5);
+        this.cooldownCenterText.setScrollFactor(0);
+        this.cooldownCenterText.setDepth(1002); // 高于其他UI
+        this.cooldownCenterText.visible = false;
+        this.UILayer.add(this.cooldownCenterText);
     }
     
     // 创建剩余加速时间显示
@@ -714,6 +744,30 @@ export class GenericUIScene extends Phaser.Scene {
         // 更新冷却时间显示
         this.cooldownText.setText(`冷却: ${remainingSeconds}s`);
         this.cooldownText.visible = visible;
+        
+        // 更新冷却状态的屏幕调灰覆盖层和中间文本
+        if (this.cooldownOverlay && this.cooldownCenterText) {
+            this.cooldownOverlay.visible = visible;
+            this.cooldownCenterText.visible = visible;
+            
+            if (visible) {
+                // 更新中间冷却时间文本
+                this.cooldownCenterText.setText(`冷却: ${remainingSeconds}s`);
+                
+                // 添加跳动动画
+                this.tweens.add({
+                    targets: this.cooldownCenterText,
+                    scale: 1.2,
+                    duration: 300,
+                    yoyo: true,
+                    repeat: -1
+                });
+            } else {
+                // 停止动画
+                this.tweens.killTweensOf(this.cooldownCenterText);
+                this.cooldownCenterText.setScale(1);
+            }
+        }
     }
     
     // 更新剩余加速时间显示

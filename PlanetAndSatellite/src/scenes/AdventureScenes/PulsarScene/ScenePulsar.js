@@ -1159,9 +1159,16 @@ export class UIScenePulsar extends GenericUIScene {
         this.successText.setScrollFactor(0);
         this.successText.setDepth(1001);
 
+        // 记录场景完成状态
+        const completedScenes = JSON.parse(localStorage.getItem('completedScenes') || '[]');
+        if (!completedScenes.includes('ScenePulsar')) {
+            completedScenes.push('ScenePulsar');
+            localStorage.setItem('completedScenes', JSON.stringify(completedScenes));
+        }
+
         this.time.delayedCall(3000, () => {
                     this.scene.stop('ScenePulsar');
-                    this.scene.start('Game');
+                    this.scene.start('MapScene', { mode: localStorage.getItem('mapSceneMode') || 'adventure' });
                 });
     }
 }

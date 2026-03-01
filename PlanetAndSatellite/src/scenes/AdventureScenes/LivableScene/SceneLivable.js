@@ -114,6 +114,14 @@ export class SceneLivable extends GenericScene {
                 if (velocityMagnitude < safeLandingSpeed) {
                     // 降落成功
                     console.log('降落成功！速度:', velocityMagnitude);
+                    
+                    // 记录场景完成状态
+                    const completedScenes = JSON.parse(localStorage.getItem('completedScenes') || '[]');
+                    if (!completedScenes.includes('SceneLivable')) {
+                        completedScenes.push('SceneLivable');
+                        localStorage.setItem('completedScenes', JSON.stringify(completedScenes));
+                    }
+                    
                     this.showLandingMessage(uiScene, '降落成功', true);
                     // 1秒后使用黑入效果开启SurfaceplayScene
                     setTimeout(() => {

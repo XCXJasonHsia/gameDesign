@@ -251,10 +251,28 @@ export class GenericRocket extends GenericSatellite {
             this.isThrustingLeft = this.controlKeys.right.isDown; // d键向左喷火
             this.isThrustingRight = this.controlKeys.left.isDown; // a键向右喷火
             
+            // 计算按下的WASD键数量
+            const pressedKeys = [
+                this.controlKeys.up.isDown,
+                this.controlKeys.down.isDown,
+                this.controlKeys.left.isDown,
+                this.controlKeys.right.isDown
+            ].filter(Boolean).length;
+            
+            // 检查是否单独按下a或d键
+            const isSingleAorD = pressedKeys === 1 && (this.controlKeys.left.isDown || this.controlKeys.right.isDown);
+            
             // 空格键：增加推力
             if (this.controlKeys.space.isDown) {
                 this.thrustPower = this.boostThrustPower;
+            } else if (isSingleAorD) {
+                // 单独按下a或d键时，推力增加更多
+                this.thrustPower = this.baseThrustPower * 5; // 增大a和d单独按时候的推力
+            } else if (pressedKeys === 1) {
+                // 只按下一个键时，推力增加为3倍
+                this.thrustPower = this.baseThrustPower * 3;
             } else {
+                // 按下多个键时，推力不变
                 this.thrustPower = this.baseThrustPower;
             }
             

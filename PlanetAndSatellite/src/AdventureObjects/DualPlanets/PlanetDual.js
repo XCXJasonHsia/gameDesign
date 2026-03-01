@@ -12,7 +12,7 @@ export class PlanetDual extends Phaser.Physics.Arcade.Sprite {
         this.planet1.body.mass = bodyMass1;
         this.planet1.isPlanet = true;
         this.planet1.mass = bodyMass1;
-        this.planet1.G = 4000;
+        this.planet1.G = 2000;
         this.planet1.power = -2;
         this.planet1.texture = texture1;
 
@@ -26,7 +26,7 @@ export class PlanetDual extends Phaser.Physics.Arcade.Sprite {
         this.planet2.body.mass = bodyMass2;
         this.planet2.isPlanet = true;
         this.planet2.mass = bodyMass2;
-        this.planet2.G = 4000;
+        this.planet2.G = 2000;
         this.planet2.power = -2;
         this.planet2.texture = texture2;
 
@@ -84,8 +84,8 @@ export class PlanetDual extends Phaser.Physics.Arcade.Sprite {
 
     initializeVelocity() {
         // 初始化速度为零
-        this.planet1.initialVelocity = new Phaser.Math.Vector2(0, 100);
-        this.planet2.initialVelocity = new Phaser.Math.Vector2(0, -100);
+        this.planet1.initialVelocity = new Phaser.Math.Vector2(0, 30);
+        this.planet2.initialVelocity = new Phaser.Math.Vector2(0, -30);
 
         // 使用固定时间步长计算前一帧位置
         const dt = this.fixedTimeStep;
@@ -160,7 +160,7 @@ export class PlanetDual extends Phaser.Physics.Arcade.Sprite {
         }
 
         // 计算引力加速度
-        const G = 4000;
+        const G = 400;
         const power = -2;
 
         // 行星1受到的加速度

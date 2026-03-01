@@ -5,7 +5,7 @@ import { GenericScene, GenericUIScene } from '../../../generalClasses/GenericSce
 
 export class SceneDualPlanets extends GenericScene {
     constructor() {
-        super('SceneDualPlanets', true, 'rocket', false, 'UISceneDualPlanets');
+        super('SceneDualPlanets', false, 'rocket', false, 'UISceneDualPlanets');
     }
 
     create() {
@@ -19,7 +19,7 @@ export class SceneDualPlanets extends GenericScene {
     setupZoomControls() {
         super.setupZoomControls();
         // 缩放范围
-        this.minZoom = 0.2;
+        this.minZoom = 0.1;
         this.maxZoom = 3;
     }
 
@@ -69,8 +69,8 @@ export class SceneDualPlanets extends GenericScene {
     initializePlanets() {
         this.initialPlanetPositions = [];
         this.planets = [];
-        this.initialPlanetPositions.push({x: this.centerX - 600, y: this.centerY});
-        this.initialPlanetPositions.push({x: this.centerX + 600, y: this.centerY});
+        this.initialPlanetPositions.push({x: this.centerX - 800, y: this.centerY});
+        this.initialPlanetPositions.push({x: this.centerX + 800, y: this.centerY});
         this.planetDual = new PlanetDual(this, this.initialPlanetPositions[0].x, this.initialPlanetPositions[0].y, 
         this.initialPlanetPositions[1].x, this.initialPlanetPositions[1].y, 'planet_angry_spriteSheet', 'planet_angry_spriteSheet', 200, 200, 10000, 10000);
         this.planets.push(this.planetDual.planet1);
@@ -174,6 +174,7 @@ export class UISceneDualPlanets extends GenericUIScene {
     constructor() {
         super('UISceneDualPlanets');
         this.mainScene = null; // 稍后在 create 方法中初始化
+        this.gravityArrow = null; // 指向成功区域的箭头
     }
 
     create() {
@@ -181,6 +182,135 @@ export class UISceneDualPlanets extends GenericUIScene {
         
         // 初始化主场景引用
         this.mainScene = this.scene.get('SceneDualPlanets');
+        
+        // 创建指向成功区域的箭头
+        this.createGravityArrow();
+    }
+    
+    // 创建指向成功区域的箭头
+    createGravityArrow() {
+        const screenWidth = this.cameras.main.width;
+        const screenHeight = this.cameras.main.height;
+        
+        // 创建箭头图像
+        this.gravityArrow = this.add.image(screenWidth / 2, screenHeight / 2, 'arrow');
+        this.gravityArrow.setScrollFactor(0); // 不随相机移动
+        this.gravityArrow.setDepth(1000); // 确保在UI层上，设置更高的深度
+        this.gravityArrow.setScale(0.2); // 缩小箭头60%
+        this.gravityArrow.visible = true; // 初始可见
+    }
+    
+    update(time, delta) {
+        super.update(time, delta);
+        this.updateArrowPosition();
+    }
+    
+    // 更新箭头位置和方向
+    updateArrowPosition() {
+        if (!this.mainScene || !this.mainScene.leader || !this.mainScene.planetDual) {
+            if (this.gravityArrow) {
+                this.gravityArrow.visible = false;
+            }
+            return;
+        }
+        
+        // 检查是否已经显示成功文本，如果是则隐藏箭头
+        if (this.successText) {
+            if (this.gravityArrow) {
+                this.gravityArrow.visible = false;
+            }
+            return;
+        }
+        
+        // 检查successArea是否在相机画面中
+        if (this.isSuccessAreaInCamera()) {
+            if (this.gravityArrow) {
+                this.gravityArrow.visible = false;
+            }
+            return;
+        }
+        
+        const screenWidth = this.cameras.main.width;
+        const screenHeight = this.cameras.main.height;
+        const screenCenterX = screenWidth / 2;
+        const screenCenterY = screenHeight / 2;
+        
+        // 获取火箭位置
+        const rocketX = this.mainScene.leader.x;
+        const rocketY = this.mainScene.leader.y;
+        
+        // 计算两颗星球的正中间位置（成功区域位置）
+        const planet1X = this.mainScene.planetDual.planet1.x;
+        const planet1Y = this.mainScene.planetDual.planet1.y;
+        const planet2X = this.mainScene.planetDual.planet2.x;
+        const planet2Y = this.mainScene.planetDual.planet2.y;
+        const successAreaX = (planet1X + planet2X) / 2;
+        const successAreaY = (planet1Y + planet2Y) / 2;
+        
+        // 计算从火箭到成功区域的向量
+        const dx = successAreaX - rocketX;
+        const dy = successAreaY - rocketY;
+        
+        // 计算向量长度
+        const length = Math.sqrt(dx * dx + dy * dy);
+        
+        // 计算单位向量
+        const unitX = dx / length;
+        const unitY = dy / length;
+        
+        // 只调整箭头大小，保持半径不变
+        const baseRadius = 260;
+        const baseScale = 0.2;
+        const radius = baseRadius; // 保持半径不变
+        const arrowScale = baseScale; // 箭头大小固定，不随相机缩放改变
+        
+        // 计算箭头在以屏幕中心为圆心的圆周上的位置
+        const arrowX = screenCenterX + unitX * radius;
+        const arrowY = screenCenterY + unitY * radius;
+        
+        // 更新箭头位置
+        this.gravityArrow.setPosition(arrowX, arrowY);
+        
+        // 更新箭头大小
+        this.gravityArrow.setScale(arrowScale);
+        
+        // 计算箭头的旋转角度（弧度）
+        const angle = Math.atan2(dy, dx);
+        
+        // 更新箭头旋转角度
+        this.gravityArrow.setRotation(angle);
+        
+        // 确保箭头可见
+        this.gravityArrow.visible = true;
+    }
+    
+    // 检查successArea是否在相机画面中
+    isSuccessAreaInCamera() {
+        if (!this.mainScene || !this.mainScene.successArea || !this.mainScene.cameras || !this.mainScene.cameras.main) {
+            return false;
+        }
+        
+        const camera = this.mainScene.cameras.main;
+        const successArea = this.mainScene.successArea;
+        const zoom = camera.zoom;
+
+        // 获取相机视口的边界
+        const cameraLeft = camera.scrollX + camera.width / 2 - camera.width/(2 * zoom);
+        const cameraRight = camera.scrollX + camera.width / 2 + camera.width/(2 * zoom);
+        const cameraTop = camera.scrollY + camera.height/2 - camera.height/(2*zoom);
+        const cameraBottom = camera.scrollY + camera.height/2 + camera.height/(2*zoom);
+        //console.log('cameraLeftRightTopBottom', cameraLeft, cameraRight, cameraTop, cameraBottom);
+        // 获取successArea的边界
+        const successAreaLeft = successArea.x - successArea.radius;
+        const successAreaRight = successArea.x + successArea.radius;
+        const successAreaTop = successArea.y - successArea.radius;
+        const successAreaBottom = successArea.y + successArea.radius;
+        //console.log('successArea:', successAreaLeft, successAreaRight, successAreaTop, successAreaBottom);
+        // 检查successArea是否与相机视口相交
+        return !(successAreaRight < cameraLeft || 
+                 successAreaLeft > cameraRight || 
+                 successAreaBottom < cameraTop || 
+                 successAreaTop > cameraBottom);
     }
 
     showSuccessAreaOverlay() {
@@ -244,9 +374,16 @@ export class UISceneDualPlanets extends GenericUIScene {
         this.successText.setScrollFactor(0);
         this.successText.setDepth(1001);
 
+        // 记录场景完成状态
+        const completedScenes = JSON.parse(localStorage.getItem('completedScenes') || '[]');
+        if (!completedScenes.includes('SceneDualPlanets')) {
+            completedScenes.push('SceneDualPlanets');
+            localStorage.setItem('completedScenes', JSON.stringify(completedScenes));
+        }
+
         this.time.delayedCall(3000, () => {
                     this.scene.stop('SceneDualPlanets');
-                    this.scene.start('Game');
+                    this.scene.start('MapScene', { mode: localStorage.getItem('mapSceneMode') || 'adventure' });
                 });
     }
 }
