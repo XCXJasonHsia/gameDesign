@@ -108,51 +108,51 @@ export class Game extends Phaser.Scene {
             });
         });
         
-        // 创建 Adventure 按钮
-        const adventureButton = this.add.text(400, 400, 'SceneDualPlanets', {
+        // 创建 Admin Map 按钮
+        const adminMapButton = this.add.text(400, 400, 'Admin Map', {
             fontSize: '32px',
             fill: '#ffffff',
             backgroundColor: '#333333',
             padding: { x: 30, y: 15 }
         });
-        adventureButton.setOrigin(0.5);
-        adventureButton.setInteractive();
+        adminMapButton.setOrigin(0.5);
+        adminMapButton.setInteractive();
         
-        // Adventure 按钮的交互效果
-        adventureButton.on('pointerover', () => {
-            adventureButton.setStyle({ 
+        // Admin Map 按钮的交互效果
+        adminMapButton.on('pointerover', () => {
+            adminMapButton.setStyle({ 
                 fill: '#66aaff',
                 backgroundColor: '#444444'
             });
             this.tweens.add({
-                targets: adventureButton,
+                targets: adminMapButton,
                 scale: 1.1,
                 duration: 200,
                 ease: 'Power2'
             });
         });
         
-        adventureButton.on('pointerout', () => {
-            adventureButton.setStyle({ 
+        adminMapButton.on('pointerout', () => {
+            adminMapButton.setStyle({ 
                 fill: '#ffffff',
                 backgroundColor: '#333333'
             });
             this.tweens.add({
-                targets: adventureButton,
+                targets: adminMapButton,
                 scale: 1,
                 duration: 200,
                 ease: 'Power2'
             });
         });
         
-        // Adventure 按钮点击事件
-        adventureButton.on('pointerdown', () => {
+        // Admin Map 按钮点击事件
+        adminMapButton.on('pointerdown', () => {
             // 点击音效
             // this.sound.play('click');
             
             // 按钮点击动画
             this.tweens.add({
-                targets: adventureButton,
+                targets: adminMapButton,
                 scale: 0.9,
                 duration: 100,
                 ease: 'Power2',
@@ -165,10 +165,9 @@ export class Game extends Phaser.Scene {
                         duration: 300,
                         ease: 'Power2',
                         onComplete: () => {
-                            // 切换到个人准备界面
-                            this.scene.start('SceneDualPlanets', {
-                                fromScene: 'Game',
-                                previousState: this.previousState
+                            // 切换到管理员模式的MapScene
+                            this.scene.start('MapScene', {
+                                mode: 'admin'
                             });
                         }
                     });

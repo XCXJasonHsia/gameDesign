@@ -6,7 +6,7 @@ import { RocketLivable } from '../../../AdventureObjects/Livable/RocketLivable.j
 export class SceneLivable extends GenericScene {
     constructor() {
         super('SceneLivable', true, 'rocket', false, 'UISceneLivable');
-        this.safeLandingSpeed = 2;
+        this.safeLandingSpeed = 0.4; // 降低为原来的1/5
     }
     
 
@@ -91,7 +91,7 @@ export class SceneLivable extends GenericScene {
         // 获取UI场景并更新速度状态显示
         const uiScene = this.scene.get(this.sceneKeyUI);
         if (uiScene && uiScene.showSpeedStatus) {
-            uiScene.showSpeedStatus(isInSafeRange);
+            uiScene.showSpeedStatus(isInSafeRange, velocityMagnitude);
         }
     }
 
@@ -229,32 +229,88 @@ export class UISceneLivable extends GenericUIScene {
     }
 
     // 显示速度范围状态
-    showSpeedStatus(isInSafeRange) {
+    showSpeedStatus(isInSafeRange, currentSpeed) {
         // 清除现有速度状态显示
         if (this.speedStatusText) {
             this.speedStatusText.destroy();
         }
+        if (this.speedBar) {
+            this.speedBar.destroy();
+        }
+        if (this.speedBarBg) {
+            this.speedBarBg.destroy();
+        }
+        if (this.safeZone) {
+            this.safeZone.destroy();
+        }
+        if (this.speedIndicator) {
+            this.speedIndicator.destroy();
+        }
+        if (this.speedLabel) {
+            this.speedLabel.destroy();
+        }
         
-        // 创建速度状态文本
+        // 创建速度数轴
         const screenWidth = this.cameras.main.width;
+        const barWidth = 200;
+        const barHeight = 20;
+        const safeSpeed = 0.4; // 安全降落速度
+        const maxSpeed = safeSpeed / 0.6; // 安全速度区域占60%
         
-        this.speedStatusText = this.add.text(
-            screenWidth - 20, 120,
-            isInSafeRange ? '✓ 可安全降落' : '✗ 速度过快',
+        // 速度数轴背景
+        this.speedBarBg = this.add.rectangle(
+            screenWidth / 2, 60,
+            barWidth, barHeight,
+            0x333333
+        );
+        this.speedBarBg.setScrollFactor(0);
+        this.speedBarBg.setDepth(999);
+        
+        // 安全区域
+        this.safeZone = this.add.rectangle(
+            screenWidth / 2 - barWidth/2 + (safeSpeed/maxSpeed)*barWidth/2,
+            60,
+            (safeSpeed/maxSpeed)*barWidth,
+            barHeight,
+            0x00ff00, 0.5
+        );
+        this.safeZone.setScrollFactor(0);
+        this.safeZone.setDepth(999);
+        
+        // 速度指示器
+        const indicatorX = screenWidth / 2 - barWidth/2 + Math.min((currentSpeed/maxSpeed)*barWidth, barWidth);
+        this.speedIndicator = this.add.rectangle(
+            indicatorX,
+            60,
+            4,
+            barHeight + 10,
+            isInSafeRange ? 0x00ff00 : 0xff0000
+        );
+        this.speedIndicator.setScrollFactor(0);
+        this.speedIndicator.setDepth(1000);
+        
+        // 速度标签
+        this.speedLabel = this.add.text(
+            screenWidth / 2,
+            30,
+            `当前速度: ${currentSpeed.toFixed(2)}`,
             {
                 fontSize: '16px',
-                fill: isInSafeRange ? '#00ff00' : '#ff0000',
+                fill: '#ffffff',
                 backgroundColor: '#00000080',
                 padding: { x: 10, y: 5 }
             }
         );
-        this.speedStatusText.setOrigin(1, 0.5);
-        this.speedStatusText.setScrollFactor(0);
-        this.speedStatusText.setDepth(999);
+        this.speedLabel.setOrigin(0.5);
+        this.speedLabel.setScrollFactor(0);
+        this.speedLabel.setDepth(999);
         
         // 添加到UI层
         if (this.UILayer) {
-            this.UILayer.add(this.speedStatusText);
+            this.UILayer.add(this.speedBarBg);
+            this.UILayer.add(this.safeZone);
+            this.UILayer.add(this.speedIndicator);
+            this.UILayer.add(this.speedLabel);
         }
     }
 
@@ -304,6 +360,24 @@ export class UISceneLivable extends GenericUIScene {
         if (this.speedStatusText) {
             this.speedStatusText.destroy();
             this.speedStatusText = null;
+        }
+        
+        // 清除速度数轴相关元素
+        if (this.speedBarBg) {
+            this.speedBarBg.destroy();
+            this.speedBarBg = null;
+        }
+        if (this.safeZone) {
+            this.safeZone.destroy();
+            this.safeZone = null;
+        }
+        if (this.speedIndicator) {
+            this.speedIndicator.destroy();
+            this.speedIndicator = null;
+        }
+        if (this.speedLabel) {
+            this.speedLabel.destroy();
+            this.speedLabel = null;
         }
         
         // 清除燃油警告显示

@@ -217,7 +217,7 @@ export class GenericRocket extends GenericSatellite {
         this.updateThrustDurationDisplay();
         
         // 更新能量状态显示
-        this.updateEnergyStateDisplay();
+        // this.updateEnergyStateDisplay(); // 取消能量状态显示
     }
 
     updateControls() {

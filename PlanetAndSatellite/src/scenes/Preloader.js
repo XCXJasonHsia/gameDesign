@@ -65,6 +65,9 @@ export class Preloader extends Phaser.Scene {
         this.load.image('livableplanetbg', 'SurfacePlaySceneAssets/livable_planet_bg.png');
         this.load.image('livableplanetground', 'SurfacePlaySceneAssets/livable_planet_ground.png');
 
+        this.load.image('success_area_circle', 'DualPlanetSceneAssets/success_area_circle.png');
+        
+
         this.load.spritesheet(
             'dude',
             'SurfacePlaySceneAssets/dude.png',
@@ -77,7 +80,7 @@ export class Preloader extends Phaser.Scene {
         );
         this.load.spritesheet(
             'planet_angry_spriteSheet', 
-            'planet_angry_spriteSheet.png',
+            'DualPlanetSceneAssets/planet_angry_spriteSheet.png',
             {frameWidth: 481, frameHeight: 500}
             );
         this.load.spritesheet(

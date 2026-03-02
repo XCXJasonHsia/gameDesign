@@ -634,7 +634,7 @@ export class GenericUIScene extends Phaser.Scene {
         this.createThrustDurationDisplay();
         
         // 创建能量状态显示
-        this.createEnergyStateDisplay();
+        // this.createEnergyStateDisplay(); // 取消能量状态显示
         
         // 执行黑出效果（场景进入时的淡出动画）
         this.fadeIn();

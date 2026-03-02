@@ -75,7 +75,7 @@ export class SatelliteLivable extends GenericSatellite {
             tangent.normalize();
             
             // 设置初始速度
-            this.initialVelocity = tangent.scale(orbitalSpeed * 2);
+            this.initialVelocity = tangent.scale(orbitalSpeed);
         } catch(error) {
             console.error('SatellitePulse:initializeVelocity failed.');
         }

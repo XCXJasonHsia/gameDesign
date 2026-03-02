@@ -37,7 +37,7 @@ export class SceneDualPlanets extends GenericScene {
         bg.setScale(2); // 背景图片放大x倍
         
         // 设置初始相机缩放
-        this.cameras.main.setZoom(0.72); // 设置相机缩放值为0.72（原来的0.9减少20%）
+        this.cameras.main.setZoom(0.3); 
     }
 
     showSuccessAreaOverlay() {
@@ -52,14 +52,13 @@ export class SceneDualPlanets extends GenericScene {
             const midX = (planet1X + planet2X) / 2;
             const midY = (planet1Y + planet2Y) / 2;
             
-            // 创建成功判定区域的圆形
-            this.successArea = this.add.circle(
+            // 使用图片作为成功判定区域
+            this.successArea = this.add.image(
                 midX,
                 midY,
-                30, // 半径
-                0x00ff00,
-                0.2
+                'success_area_circle'
             );
+            this.successArea.setScale(0.1); // 调整大小，缩小为0.5倍
             this.successArea.setDepth(-50); // 设置在背景之上，行星之下
             // 不设置scrollFactor为0，这样它会随相机移动
         }
@@ -114,8 +113,38 @@ export class SceneDualPlanets extends GenericScene {
         super.update(time, delta);
         this.ifSuccess();
         
+        // 实时更新火箭速度状态
+        this.updateRocketSpeedStatus();
+        
         // 更新成功判定区域的位置
         this.updateSuccessAreaOverlay();
+    }
+    
+    // 实时更新火箭速度状态
+    updateRocketSpeedStatus() {
+        if (!this.leader) return;
+        
+        // 计算火箭速度
+        const velocityX = this.leader.body.velocity.x;
+        const velocityY = this.leader.body.velocity.y;
+        const currentVelocity = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
+        
+        // 平滑速度值，减少跳动
+        if (!this.smoothedVelocity) {
+            this.smoothedVelocity = currentVelocity;
+        } else {
+            // 使用移动平均法平滑速度
+            this.smoothedVelocity = this.smoothedVelocity * 0.8 + currentVelocity * 0.2;
+        }
+        
+        // 检查是否在安全速度范围内（成功所需的速度）
+        const isInSafeRange = this.smoothedVelocity < 500;
+        
+        // 获取UI场景并更新速度状态显示
+        const uiScene = this.scene.get(this.sceneKeyUI);
+        if (uiScene && uiScene.showSpeedStatus) {
+            uiScene.showSpeedStatus(isInSafeRange, this.smoothedVelocity);
+        }
     }
 
     updateSuccessAreaOverlay() {
@@ -157,8 +186,8 @@ export class SceneDualPlanets extends GenericScene {
             const velocityY = this.leader.body.velocity.y;
             const velocityMagnitude = Math.sqrt(velocityX * velocityX + velocityY * velocityY);
             
-            // 检查飞船是否在中间位置附近且速度较小
-            if(distanceToMid < 150 && velocityMagnitude < 50) {
+            // 检查飞船是否在中间位置附近且速度较小（放松判定，更容易通关）
+            if(distanceToMid < 300 && velocityMagnitude < 500) {
                 this.isPaused = true;
                 this.physics.world.pause();
                 this.tweens.pauseAll();
@@ -175,6 +204,10 @@ export class UISceneDualPlanets extends GenericUIScene {
         super('UISceneDualPlanets');
         this.mainScene = null; // 稍后在 create 方法中初始化
         this.gravityArrow = null; // 指向成功区域的箭头
+        this.speedBarBg = null;
+        this.safeZone = null;
+        this.speedIndicator = null;
+        this.speedLabel = null;
     }
 
     create() {
@@ -301,16 +334,98 @@ export class UISceneDualPlanets extends GenericUIScene {
         const cameraBottom = camera.scrollY + camera.height/2 + camera.height/(2*zoom);
         //console.log('cameraLeftRightTopBottom', cameraLeft, cameraRight, cameraTop, cameraBottom);
         // 获取successArea的边界
-        const successAreaLeft = successArea.x - successArea.radius;
-        const successAreaRight = successArea.x + successArea.radius;
-        const successAreaTop = successArea.y - successArea.radius;
-        const successAreaBottom = successArea.y + successArea.radius;
+        // 由于successArea是图片，使用缩放后的宽度作为直径
+        const successAreaRadius = successArea.width * successArea.scaleX / 2;
+        const successAreaLeft = successArea.x - successAreaRadius;
+        const successAreaRight = successArea.x + successAreaRadius;
+        const successAreaTop = successArea.y - successAreaRadius;
+        const successAreaBottom = successArea.y + successAreaRadius;
         //console.log('successArea:', successAreaLeft, successAreaRight, successAreaTop, successAreaBottom);
         // 检查successArea是否与相机视口相交
         return !(successAreaRight < cameraLeft || 
                  successAreaLeft > cameraRight || 
                  successAreaBottom < cameraTop || 
                  successAreaTop > cameraBottom);
+    }
+
+    // 显示速度范围状态
+    showSpeedStatus(isInSafeRange, currentSpeed) {
+        // 清除现有速度状态显示
+        if (this.speedBarBg) {
+            this.speedBarBg.destroy();
+        }
+        if (this.safeZone) {
+            this.safeZone.destroy();
+        }
+        if (this.speedIndicator) {
+            this.speedIndicator.destroy();
+        }
+        if (this.speedLabel) {
+            this.speedLabel.destroy();
+        }
+        
+        // 创建速度数轴
+        const screenWidth = this.cameras.main.width;
+        const barWidth = 200;
+        const barHeight = 20;
+        const safeSpeed = 500; // 成功所需的速度
+        const maxSpeed = safeSpeed / 0.6; // 安全速度区域占60%
+        
+        // 速度数轴背景
+        this.speedBarBg = this.add.rectangle(
+            screenWidth / 2, 60,
+            barWidth, barHeight,
+            0x333333
+        );
+        this.speedBarBg.setScrollFactor(0);
+        this.speedBarBg.setDepth(999);
+        
+        // 安全区域
+        this.safeZone = this.add.rectangle(
+            screenWidth / 2 - barWidth/2 + (safeSpeed/maxSpeed)*barWidth/2,
+            60,
+            (safeSpeed/maxSpeed)*barWidth,
+            barHeight,
+            0x00ff00, 0.5
+        );
+        this.safeZone.setScrollFactor(0);
+        this.safeZone.setDepth(999);
+        
+        // 速度指示器
+        const indicatorX = screenWidth / 2 - barWidth/2 + Math.min((currentSpeed/maxSpeed)*barWidth, barWidth);
+        this.speedIndicator = this.add.rectangle(
+            indicatorX,
+            60,
+            4,
+            barHeight + 10,
+            isInSafeRange ? 0x00ff00 : 0xff0000
+        );
+        this.speedIndicator.setScrollFactor(0);
+        this.speedIndicator.setDepth(1000);
+        
+        // 速度标签
+        this.speedLabel = this.add.text(
+            screenWidth / 2,
+            30,
+            `当前速度: ${currentSpeed.toFixed(2)}`,
+            {
+                fontSize: '16px',
+                fill: '#ffffff',
+                backgroundColor: '#00000080',
+                padding: { x: 10, y: 5 }
+            }
+        );
+        this.speedLabel.setOrigin(0.5);
+        this.speedLabel.setScrollFactor(0);
+        this.speedLabel.setDepth(999);
+        
+        // 添加到UI层
+        if (this.UILayer) {
+            this.UILayer.add(this.speedBarBg);
+            this.UILayer.add(this.safeZone);
+            this.UILayer.add(this.speedIndicator);
+            this.UILayer.add(this.speedLabel);
+        }
     }
 
     showSuccessAreaOverlay() {
@@ -385,5 +500,28 @@ export class UISceneDualPlanets extends GenericUIScene {
                     this.scene.stop('SceneDualPlanets');
                     this.scene.start('MapScene', { mode: localStorage.getItem('mapSceneMode') || 'adventure' });
                 });
+    }
+    
+    // 重写清除UI显示的方法，确保清除所有自定义UI元素
+    clearUIDisplay() {
+        super.clearUIDisplay();
+        
+        // 清除速度数轴相关元素
+        if (this.speedBarBg) {
+            this.speedBarBg.destroy();
+            this.speedBarBg = null;
+        }
+        if (this.safeZone) {
+            this.safeZone.destroy();
+            this.safeZone = null;
+        }
+        if (this.speedIndicator) {
+            this.speedIndicator.destroy();
+            this.speedIndicator = null;
+        }
+        if (this.speedLabel) {
+            this.speedLabel.destroy();
+            this.speedLabel = null;
+        }
     }
 }
